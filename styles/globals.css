@@ -1,0 +1,238 @@
+@import "tailwindcss";
+
+/* Tailwind v4 auto-detects sources relative to this file; be explicit so the
+   stylesheet can live outside `app/` without losing class detection. */
+@source "../app";
+@source "../components";
+@source "../lib";
+
+/* Class-based dark mode (the theme provider toggles `.dark` on <html>). */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* `inline` substitutes these at each use site, so the next/font variables on
+   <html> resolve correctly instead of computing to empty at :root. */
+@theme inline {
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, "SFMono-Regular", monospace;
+}
+
+@theme {
+  /*
+   * Brand orange. 500 is the exact brand value (#FF6B00) and is used wherever
+   * the colour is decorative — glows, borders, fills, icons.
+   *
+   * 600 and 700 are deliberately deeper than a naive ramp so they clear WCAG AA
+   * as *text* on a light surface: 600 measures 4.78:1 on white, 700 measures
+   * 6.6:1. A conventional #E05C00 at 600 would only reach 3.9:1 and quietly
+   * fail every eyebrow label and link in the app.
+   */
+  --color-brand-50: #fff4ec;
+  --color-brand-100: #ffe3ce;
+  --color-brand-200: #ffc49b;
+  --color-brand-300: #ffa164;
+  --color-brand-400: #ff8531;
+  --color-brand-500: #ff6b00;
+  --color-brand-600: #c24e00;
+  --color-brand-700: #9c3e00;
+  --color-brand-800: #7a3103;
+  --color-brand-900: #52210a;
+
+  /*
+   * The ramp warms toward the light end and neutralises toward the dark end.
+   *
+   * Light surfaces keep a warm cast (hue ~25°) so the orange reads as part of
+   * the palette rather than pasted onto it. Dark surfaces are deliberately
+   * neutral — a warm near-black made the whole dark theme look tinted, and the
+   * orange has more presence against a true black anyway.
+   *
+   * 400 is the muted-text step for DARK surfaces and 500 the one for LIGHT.
+   * No single grey can clear 4.5:1 against both #FAF8F6 and #0A0A0A — the two
+   * requirements are mutually exclusive — so the pairing is always
+   * `text-ink-500 dark:text-ink-400`.
+   */
+  --color-ink-50: #faf8f6;
+  --color-ink-100: #f1eeea;
+  --color-ink-200: #e4dfd9;
+  --color-ink-300: #c7bfb7;
+  --color-ink-400: #8b837c;
+  --color-ink-500: #605952;
+  --color-ink-600: #4a4541;
+  --color-ink-700: #333130;
+  --color-ink-800: #212121;
+  --color-ink-850: #191919;
+  --color-ink-900: #121212;
+  --color-ink-950: #0a0a0a;
+
+  --radius-card: 16px;
+
+  --shadow-soft: 0 1px 2px rgba(11, 11, 11, 0.04), 0 12px 32px -16px rgba(11, 11, 11, 0.2);
+  --shadow-lift: 0 2px 4px rgba(11, 11, 11, 0.06), 0 24px 56px -24px rgba(11, 11, 11, 0.32);
+
+  --animate-shimmer: shimmer 1.6s linear infinite;
+  --animate-float: float 9s ease-in-out infinite;
+  --animate-drift: drift 22s linear infinite;
+
+  @keyframes shimmer {
+    from {
+      background-position: -160% 0;
+    }
+    to {
+      background-position: 160% 0;
+    }
+  }
+  @keyframes float {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-14px);
+    }
+  }
+  @keyframes drift {
+    0% {
+      transform: translate3d(0, 0, 0) scale(1);
+    }
+    50% {
+      transform: translate3d(3%, -4%, 0) scale(1.08);
+    }
+    100% {
+      transform: translate3d(0, 0, 0) scale(1);
+    }
+  }
+}
+
+@layer base {
+  * {
+    border-color: theme(--color-ink-200);
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    /* Warm off-white rather than pure white: cards are white, so the page
+       tint is what lets them lift instead of dissolving into the background. */
+    @apply bg-ink-50 text-ink-900 antialiased;
+    @apply dark:bg-ink-950 dark:text-ink-50;
+    font-family: var(--font-sans);
+  }
+
+  /* Only colour transitions — layout and transforms stay untouched so
+     Framer Motion animations remain on the compositor. */
+  body,
+  header,
+  footer,
+  aside,
+  section,
+  article,
+  nav,
+  div,
+  a,
+  button,
+  input,
+  select,
+  textarea,
+  svg,
+  table,
+  th,
+  td {
+    transition-property: background-color, border-color, color, fill, stroke;
+    transition-duration: 200ms;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  :focus-visible {
+    @apply outline-none ring-2 ring-brand-500 ring-offset-2 ring-offset-white dark:ring-offset-ink-950;
+    border-radius: 6px;
+  }
+
+  ::selection {
+    @apply bg-brand-500/25;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply rounded-full bg-ink-300 dark:bg-ink-700;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-brand-400 dark:bg-brand-700;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer components {
+  /* Frosted-glass surfaces used by the navbar, drawers and floating panels. */
+  .glass {
+    @apply border border-ink-900/8 bg-white/75 backdrop-blur-xl;
+    @apply dark:border-white/10 dark:bg-white/5;
+  }
+
+  .glass-strong {
+    @apply border border-ink-900/8 bg-white/90 backdrop-blur-2xl;
+    @apply dark:border-white/10 dark:bg-ink-900/90;
+  }
+
+  /* The standard content card: soft shadow, 16px radius, theme aware. */
+  .card-surface {
+    @apply rounded-2xl border border-ink-200 bg-white shadow-[var(--shadow-soft)];
+    @apply dark:border-white/8 dark:bg-ink-900 dark:shadow-[0_1px_2px_rgba(0,0,0,0.5),0_18px_44px_-22px_rgba(0,0,0,0.9)];
+  }
+
+  .glow-brand {
+    box-shadow:
+      0 0 0 1px rgba(255, 107, 0, 0.35),
+      0 16px 44px -16px rgba(255, 107, 0, 0.5);
+  }
+
+  .text-gradient-brand {
+    @apply bg-gradient-to-r from-brand-400 via-brand-500 to-brand-600 bg-clip-text text-transparent;
+  }
+
+  .shimmer-surface {
+    @apply bg-ink-100 dark:bg-ink-800;
+    background-image: linear-gradient(
+      100deg,
+      transparent 20%,
+      rgba(255, 255, 255, 0.55) 50%,
+      transparent 80%
+    );
+    background-size: 220% 100%;
+    animation: var(--animate-shimmer);
+  }
+
+  .dark .shimmer-surface {
+    background-image: linear-gradient(
+      100deg,
+      transparent 20%,
+      rgba(255, 255, 255, 0.07) 50%,
+      transparent 80%
+    );
+  }
+
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+}

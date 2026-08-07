@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" width="1200" height="900" role="img" aria-label="Lenovo LOQ 15 (i5)">
+  <defs>
+    <linearGradient id="bg3" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="hsl(16 22% 13%)"/>
+      <stop offset="100%" stop-color="hsl(28 26% 4%)"/>
+    </linearGradient>
+    <radialGradient id="halo3" cx="50%" cy="28%" r="60%">
+      <stop offset="0%" stop-color="hsl(24 100% 50%)" stop-opacity="0.34"/>
+      <stop offset="100%" stop-color="hsl(24 100% 50%)" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="screenGlow3" x1="0" y1="0" x2="0.6" y2="1">
+      <stop offset="0%" stop-color="hsl(24 100% 50%)" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="hsl(24 100% 50%)" stop-opacity="0.02"/>
+    </linearGradient>
+    <pattern id="grid3" width="48" height="48" patternUnits="userSpaceOnUse">
+      <path d="M48 0H0v48" fill="none" stroke="#ffffff" stroke-opacity="0.035"/>
+    </pattern>
+  </defs>
+
+  <rect width="1200" height="900" fill="url(#bg3)"/>
+  <rect width="1200" height="900" fill="url(#grid3)"/>
+  <rect width="1200" height="900" fill="url(#halo3)"/>
+
+  
+    <g transform="translate(600 470) rotate(-14) translate(-600 -470)">
+      <rect x="286" y="300" width="628" height="392" rx="26" fill="hsl(16 8% 26%)"/>
+      <rect x="302" y="316" width="596" height="360" rx="18" fill="hsl(16 9% 14%)" opacity="0.55"/>
+      <g transform="translate(600 496)">
+        <rect x="-58" y="-40" width="116" height="80" rx="16" fill="none" stroke="hsl(24 100% 50%)" stroke-width="6" stroke-opacity="0.85"/>
+        <path d="M-78 44h156l10 14H-88l10-14Z" fill="hsl(24 100% 50%)" opacity="0.85"/>
+      </g>
+    </g>
+
+  <g font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif">
+    <text x="72" y="112" fill="hsl(24 100% 50%)" font-size="30" font-weight="700" letter-spacing="7">LENOVO</text>
+    <text x="72" y="164" fill="#ffffff" fill-opacity="0.92" font-size="42" font-weight="700">Lenovo LOQ 15 (i5)</text>
+    <text x="72" y="836" fill="#ffffff" fill-opacity="0.4" font-size="24" letter-spacing="4">LUNOWIX</text>
+  </g>
+</svg>
