@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" width="1200" height="900" role="img" aria-label="OnePlus Bullets Wireless Z2">
+  <defs>
+    <linearGradient id="bg3" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="hsl(12 22% 13%)"/>
+      <stop offset="100%" stop-color="hsl(24 26% 4%)"/>
+    </linearGradient>
+    <radialGradient id="halo3" cx="50%" cy="28%" r="60%">
+      <stop offset="0%" stop-color="hsl(24 100% 50%)" stop-opacity="0.34"/>
+      <stop offset="100%" stop-color="hsl(24 100% 50%)" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="screenGlow3" x1="0" y1="0" x2="0.6" y2="1">
+      <stop offset="0%" stop-color="hsl(24 100% 50%)" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="hsl(24 100% 50%)" stop-opacity="0.02"/>
+    </linearGradient>
+    <pattern id="grid3" width="48" height="48" patternUnits="userSpaceOnUse">
+      <path d="M48 0H0v48" fill="none" stroke="#ffffff" stroke-opacity="0.035"/>
+    </pattern>
+  </defs>
+
+  <rect width="1200" height="900" fill="url(#bg3)"/>
+  <rect width="1200" height="900" fill="url(#grid3)"/>
+  <rect width="1200" height="900" fill="url(#halo3)"/>
+
+  
+    <g transform="translate(600 430) scale(1.1)">
+      <!-- case -->
+      <rect x="-210" y="-30" width="230" height="180" rx="52" fill="hsl(12 9% 14%)"/>
+      <rect x="-196" y="-16" width="202" height="152" rx="44" fill="hsl(12 8% 26%)"/>
+      <rect x="-150" y="44" width="110" height="8" rx="4" fill="hsl(24 100% 50%)" opacity="0.5"/>
+      <circle cx="-95" cy="96" r="7" fill="hsl(24 100% 50%)" opacity="0.7"/>
+      <!-- buds -->
+      <g transform="translate(120 -10)">
+        <ellipse cx="0" cy="0" rx="46" ry="40" fill="hsl(12 8% 26%)"/>
+        <ellipse cx="0" cy="0" rx="26" ry="22" fill="hsl(12 30% 8%)"/>
+        <ellipse cx="0" cy="0" rx="26" ry="22" fill="none" stroke="hsl(24 100% 50%)" stroke-opacity="0.6" stroke-width="3"/>
+        <path d="M-14 32 q-8 62 16 78 q20 12 30 -6" fill="none" stroke="hsl(12 8% 26%)" stroke-width="26" stroke-linecap="round"/>
+      </g>
+      <g transform="translate(216 66)">
+        <ellipse cx="0" cy="0" rx="40" ry="34" fill="hsl(12 9% 14%)"/>
+        <ellipse cx="0" cy="0" rx="22" ry="18" fill="hsl(12 30% 8%)"/>
+        <ellipse cx="0" cy="0" rx="22" ry="18" fill="none" stroke="hsl(24 100% 50%)" stroke-opacity="0.4" stroke-width="3"/>
+      </g>
+    </g>
+
+  <g font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif">
+    <text x="72" y="112" fill="hsl(24 100% 50%)" font-size="30" font-weight="700" letter-spacing="7">ONEPLUS</text>
+    <text x="72" y="164" fill="#ffffff" fill-opacity="0.92" font-size="42" font-weight="700">OnePlus Bullets Wireless Z2</text>
+    <text x="72" y="836" fill="#ffffff" fill-opacity="0.4" font-size="24" letter-spacing="4">LUNOWIX</text>
+  </g>
+</svg>

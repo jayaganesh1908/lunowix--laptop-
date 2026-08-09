@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" width="1200" height="900" role="img" aria-label="Nothing Phone (2a) Plus">
+  <defs>
+    <linearGradient id="bg1" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="hsl(5 22% 9%)"/>
+      <stop offset="100%" stop-color="hsl(17 26% 4%)"/>
+    </linearGradient>
+    <radialGradient id="halo1" cx="50%" cy="28%" r="60%">
+      <stop offset="0%" stop-color="hsl(24 100% 50%)" stop-opacity="0.34"/>
+      <stop offset="100%" stop-color="hsl(24 100% 50%)" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="screenGlow1" x1="0" y1="0" x2="0.6" y2="1">
+      <stop offset="0%" stop-color="hsl(24 100% 50%)" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="hsl(24 100% 50%)" stop-opacity="0.02"/>
+    </linearGradient>
+    <pattern id="grid1" width="48" height="48" patternUnits="userSpaceOnUse">
+      <path d="M48 0H0v48" fill="none" stroke="#ffffff" stroke-opacity="0.035"/>
+    </pattern>
+  </defs>
+
+  <rect width="1200" height="900" fill="url(#bg1)"/>
+  <rect width="1200" height="900" fill="url(#grid1)"/>
+  <rect width="1200" height="900" fill="url(#halo1)"/>
+
+  
+    <g transform="rotate(0 600 460)">
+      <rect x="480" y="210" width="240" height="500" rx="31.200000000000003" fill="hsl(5 8% 21%)"/>
+      <rect x="488.4" y="218.4" width="223.2" height="483.2" rx="26.160000000000004" fill="hsl(5 30% 8%)"/>
+      <rect x="488.4" y="218.4" width="223.2" height="483.2" rx="26.160000000000004" fill="url(#screenGlow1)"/>
+      <rect x="507.59999999999997" y="360" width="144.00000000000003" height="13" rx="6.5" fill="hsl(24 100% 50%)" opacity="0.20"/><rect x="507.59999999999997" y="397.5" width="168" height="13" rx="6.5" fill="hsl(24 100% 50%)" opacity="0.14"/><rect x="507.59999999999997" y="435" width="96" height="13" rx="6.5" fill="hsl(24 100% 50%)" opacity="0.26"/><rect x="507.59999999999997" y="472.5" width="120" height="13" rx="6.5" fill="hsl(24 100% 50%)" opacity="0.20"/><rect x="507.59999999999997" y="510" width="120" height="13" rx="6.5" fill="hsl(24 100% 50%)" opacity="0.14"/>
+      <rect x="488.4" y="218.4" width="223.2" height="483.2" rx="26.160000000000004" fill="none" stroke="hsl(24 100% 50%)" stroke-opacity="0.3"/>
+      <rect x="573.6" y="232.5" width="52.8" height="11" rx="5.5" fill="hsl(5 9% 14%)"/>
+    </g>
+
+  <g font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif">
+    <text x="72" y="112" fill="hsl(24 100% 50%)" font-size="30" font-weight="700" letter-spacing="7">NOTHING</text>
+    <text x="72" y="164" fill="#ffffff" fill-opacity="0.92" font-size="42" font-weight="700">Nothing Phone (2a) Plus</text>
+    <text x="72" y="836" fill="#ffffff" fill-opacity="0.4" font-size="24" letter-spacing="4">LUNOWIX</text>
+  </g>
+</svg>

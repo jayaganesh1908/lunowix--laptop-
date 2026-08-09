@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" width="1200" height="900" role="img" aria-label="Sennheiser Momentum 4 Wireless">
+  <defs>
+    <linearGradient id="bg3" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="hsl(156 22% 13%)"/>
+      <stop offset="100%" stop-color="hsl(168 26% 4%)"/>
+    </linearGradient>
+    <radialGradient id="halo3" cx="50%" cy="28%" r="60%">
+      <stop offset="0%" stop-color="hsl(24 100% 50%)" stop-opacity="0.34"/>
+      <stop offset="100%" stop-color="hsl(24 100% 50%)" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="screenGlow3" x1="0" y1="0" x2="0.6" y2="1">
+      <stop offset="0%" stop-color="hsl(24 100% 50%)" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="hsl(24 100% 50%)" stop-opacity="0.02"/>
+    </linearGradient>
+    <pattern id="grid3" width="48" height="48" patternUnits="userSpaceOnUse">
+      <path d="M48 0H0v48" fill="none" stroke="#ffffff" stroke-opacity="0.035"/>
+    </pattern>
+  </defs>
+
+  <rect width="1200" height="900" fill="url(#bg3)"/>
+  <rect width="1200" height="900" fill="url(#grid3)"/>
+  <rect width="1200" height="900" fill="url(#halo3)"/>
+
+  
+    <g transform="translate(600 430) rotate(0) scale(1.18)">
+      <!-- headband -->
+      <path d="M-190 30 A190 210 0 0 1 190 30" fill="none" stroke="hsl(156 8% 26%)" stroke-width="46" stroke-linecap="round"/>
+      <path d="M-190 30 A190 210 0 0 1 190 30" fill="none" stroke="hsl(156 9% 14%)" stroke-width="20" stroke-linecap="round" opacity="0.6"/>
+      <!-- cups -->
+      <g>
+        <rect x="-244" y="10" width="108" height="176" rx="46" fill="hsl(156 9% 14%)"/>
+        <rect x="-232" y="24" width="84" height="148" rx="38" fill="hsl(156 8% 26%)"/>
+        <ellipse cx="-190" cy="98" rx="30" ry="52" fill="hsl(156 30% 8%)"/>
+        <ellipse cx="-190" cy="98" rx="30" ry="52" fill="none" stroke="hsl(24 100% 50%)" stroke-opacity="0.55" stroke-width="3"/>
+      </g>
+      <g>
+        <rect x="136" y="10" width="108" height="176" rx="46" fill="hsl(156 9% 14%)"/>
+        <rect x="148" y="24" width="84" height="148" rx="38" fill="hsl(156 8% 26%)"/>
+        <ellipse cx="190" cy="98" rx="30" ry="52" fill="hsl(156 30% 8%)"/>
+        <ellipse cx="190" cy="98" rx="30" ry="52" fill="none" stroke="hsl(24 100% 50%)" stroke-opacity="0.55" stroke-width="3"/>
+      </g>
+      <circle cx="190" cy="98" r="9" fill="hsl(24 100% 50%)" opacity="0.8"/>
+    </g>
+
+  <g font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif">
+    <text x="72" y="112" fill="hsl(24 100% 50%)" font-size="30" font-weight="700" letter-spacing="7">SENNHEISER</text>
+    <text x="72" y="164" fill="#ffffff" fill-opacity="0.92" font-size="42" font-weight="700">Sennheiser Momentum 4 Wireless</text>
+    <text x="72" y="836" fill="#ffffff" fill-opacity="0.4" font-size="24" letter-spacing="4">LUNOWIX</text>
+  </g>
+</svg>

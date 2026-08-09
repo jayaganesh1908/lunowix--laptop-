@@ -23,14 +23,12 @@
 
   
     <g transform="translate(600 470) rotate(-6) scale(0.92) translate(-600 -470)">
-      <!-- lid -->
       <rect x="300" y="238" width="600" height="368" rx="18" fill="hsl(188 8% 21%)"/>
       <rect x="316" y="254" width="568" height="316" rx="10" fill="hsl(188 30% 8%)"/>
       <rect x="316" y="254" width="568" height="316" rx="10" fill="url(#screenGlow2)"/>
       <rect x="330" y="292" width="90" height="10" rx="5" fill="hsl(24 100% 50%)" opacity="0.16"/><rect x="330" y="322" width="182" height="10" rx="5" fill="hsl(24 100% 50%)" opacity="0.30"/><rect x="330" y="352" width="182" height="10" rx="5" fill="hsl(24 100% 50%)" opacity="0.37"/><rect x="330" y="382" width="182" height="10" rx="5" fill="hsl(24 100% 50%)" opacity="0.23"/><rect x="330" y="412" width="274" height="10" rx="5" fill="hsl(24 100% 50%)" opacity="0.16"/><rect x="330" y="442" width="90" height="10" rx="5" fill="hsl(24 100% 50%)" opacity="0.16"/>
       <rect x="316" y="254" width="568" height="316" rx="10" fill="none" stroke="hsl(24 100% 50%)" stroke-opacity="0.28"/>
       <circle cx="600" cy="248" r="3.5" fill="hsl(188 9% 14%)"/>
-      <!-- base -->
       <path d="M232 606h736l46 62a14 14 0 0 1-11.4 22.2H197.4A14 14 0 0 1 186 668l46-62Z" fill="hsl(188 9% 14%)"/>
       <path d="M232 606h736l16 22H216l16-22Z" fill="hsl(188 8% 21%)"/>
       <rect x="516" y="662" width="168" height="9" rx="4.5" fill="hsl(24 100% 50%)" opacity="0.45"/>
