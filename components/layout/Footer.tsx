@@ -8,15 +8,20 @@ import {
 } from "@/components/common/SocialIcons";
 import { Logo } from "@/components/common/Logo";
 import { budgetBands } from "@/lib/data/laptops";
+import { categories } from "@/lib/types";
 
 const COLUMNS = [
   {
     title: "Browse",
+    /* One entry per category, derived rather than listed — the footer had only
+       ever gained `/laptops`, so phones and headphones were absent here too.
+       "Compare" and "Wishlist" span every category, so they stay fixed. */
     links: [
-      { href: "/laptops", label: "All laptops" },
-      { href: "/laptops?sort=performance", label: "Top performers" },
-      { href: "/laptops?sort=rating", label: "Highest rated" },
-      { href: "/compare", label: "Compare laptops" },
+      ...categories.map((category) => ({
+        href: `/${category.route}`,
+        label: `All ${category.pluralLabel.toLowerCase()}`,
+      })),
+      { href: "/compare", label: "Compare products" },
       { href: "/wishlist", label: "Your wishlist" },
     ],
   },

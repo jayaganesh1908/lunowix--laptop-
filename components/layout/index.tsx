@@ -18,6 +18,7 @@ import { Logo, buttonStyles } from "@/components/common/Display";
 import { SearchBar, ThemeToggle } from "@/components/common";
 import { Particles } from "@/components/ui/particles";
 import { useAuth, useCompare, useWishlist } from "@/lib/hooks";
+import { categories } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 /**
@@ -50,14 +51,20 @@ export function BackgroundParticles() {
   );
 }
 
+/* Derived from `categories` — see the note in `Navbar.tsx`. This copy and that
+   one had drifted in opposite directions: this list carried phones and
+   headphones but lost `/contact`, while the one actually mounted by
+   `app/layout.tsx` carried `/contact` but never gained the two categories. */
 const NAV_LINKS = [
   { href: "/", label: "Home" },
-  { href: "/laptops", label: "Laptops" },
-  { href: "/phones", label: "Phones" },
-  { href: "/headphones", label: "Headphones" },
+  ...categories.map((category) => ({
+    href: `/${category.route}`,
+    label: category.pluralLabel,
+  })),
   { href: "/compare", label: "Compare" },
   { href: "/wishlist", label: "Wishlist" },
   { href: "/about", label: "About" },
+  { href: "/contact", label: "Contact" },
 ];
 
 function isActive(pathname: string, href: string) {

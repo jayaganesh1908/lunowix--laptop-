@@ -21,11 +21,24 @@ import { buttonStyles } from "@/components/common/buttonStyles";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { useCompare } from "@/lib/hooks/useCompare";
 import { useWishlist } from "@/lib/hooks/useWishlist";
+import { categories } from "@/lib/types";
 import { cn } from "@/lib/utils/cn";
 
+/*
+ * The category links are derived from `categories`, not written out here.
+ *
+ * They were hardcoded, and only `/laptops` was ever added — so `/phones` and
+ * `/headphones` shipped fully built, with data and detail routes, and were
+ * reachable only by typing the URL. Deriving them means a new category appears
+ * in the nav the moment it is added to the metadata, in both the desktop bar
+ * and the mobile drawer, and this list cannot drift out of sync again.
+ */
 const NAV_LINKS = [
   { href: "/", label: "Home" },
-  { href: "/laptops", label: "Laptops" },
+  ...categories.map((category) => ({
+    href: `/${category.route}`,
+    label: category.pluralLabel,
+  })),
   { href: "/compare", label: "Compare" },
   { href: "/wishlist", label: "Wishlist" },
   { href: "/about", label: "About" },
