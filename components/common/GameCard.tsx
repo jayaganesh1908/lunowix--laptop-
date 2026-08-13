@@ -36,7 +36,7 @@ export function GameCard({
         <div className="flex items-center gap-3">
           <span
             aria-hidden
-            className="flex size-10 items-center justify-center rounded-xl bg-ink-100 text-xl dark:bg-white/5"
+            className="flex size-10 items-center justify-center rounded-xl bg-ink-100 text-xl dark:bg-ink-950/60"
           >
             {benchmark.icon}
           </span>

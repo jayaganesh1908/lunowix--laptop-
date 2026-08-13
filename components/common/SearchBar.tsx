@@ -101,7 +101,7 @@ export function SearchBar({
         className={cn(
           "flex items-center gap-2 rounded-xl border border-ink-200 bg-white/80 px-3 backdrop-blur transition",
           "focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-500/25",
-          "dark:border-white/15 dark:bg-white/5",
+          "dark:border-white/15 dark:bg-ink-950/60",
           size === "lg" ? "h-13 px-4" : "h-10",
         )}
       >

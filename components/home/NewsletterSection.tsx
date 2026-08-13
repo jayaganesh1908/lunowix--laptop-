@@ -93,7 +93,7 @@ export function NewsletterSection() {
                   placeholder="you@example.com"
                   aria-invalid={error ? true : undefined}
                   aria-describedby={error ? errorId : undefined}
-                  className="h-11 w-full rounded-xl border border-ink-200 bg-white/80 px-4 text-sm outline-none transition placeholder:text-ink-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25 dark:border-white/15 dark:bg-white/5 dark:placeholder:text-ink-500"
+                  className="h-11 w-full rounded-xl border border-ink-200 bg-white/80 px-4 text-sm outline-none transition placeholder:text-ink-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25 dark:border-white/15 dark:bg-ink-950/60 dark:placeholder:text-ink-500"
                 />
                 {error ? (
                   <p id={errorId} role="alert" className="mt-1.5 text-xs text-rose-600 dark:text-rose-400">

@@ -33,7 +33,7 @@ export function SortDropdown({
         className={cn(
           "h-10 rounded-xl border border-ink-200 bg-white/80 px-3 pr-8 text-sm font-medium outline-none transition",
           "focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25",
-          "dark:border-white/15 dark:bg-ink-850 dark:text-ink-100",
+          "dark:border-white/15 dark:bg-ink-800 dark:text-ink-100",
         )}
       >
         {sortOptions.map((option) => (

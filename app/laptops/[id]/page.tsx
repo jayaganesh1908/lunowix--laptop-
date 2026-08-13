@@ -177,7 +177,7 @@ export default async function LaptopDetailsPage({
             {highlights.map(({ icon: Icon, label, value }) => (
               <div
                 key={label}
-                className="rounded-xl border border-ink-900/5 bg-ink-50/70 px-3 py-3 dark:border-white/10 dark:bg-white/[0.03]"
+                className="rounded-xl border border-ink-900/5 bg-ink-50/70 px-3 py-3 dark:border-white/10 dark:bg-ink-950/40"
               >
                 <dt className="flex items-center gap-1.5 text-xs text-ink-500 dark:text-ink-400">
                   <Icon className="size-3.5" aria-hidden />

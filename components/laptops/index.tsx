@@ -51,6 +51,7 @@ import {
   shortGpu,
   staggerFast,
 } from "@/lib/utils";
+import { useTilt } from "@/components/ui/3d-card";
 
 export interface LaptopCardProps {
   laptop: Laptop;
@@ -63,6 +64,9 @@ export function LaptopCard({ laptop, priority = false, className }: LaptopCardPr
   const wishlist = useWishlist();
   const compare = useCompare();
   const { toast } = useToast();
+  // Perspective is tuned to the ~280px grid card, not the 320px standalone card
+  // the upstream default assumed — see the note on `UseTiltOptions.perspective`.
+  const tilt = useTilt({ intensity: 12, perspective: 650 });
 
   const saved = wishlist.has(laptop.id);
   const comparing = compare.has(laptop.id);
@@ -88,13 +92,16 @@ export function LaptopCard({ laptop, priority = false, className }: LaptopCardPr
       variants={fadeUp}
       whileHover={{ y: -6 }}
       transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+      onMouseMove={tilt.onMouseMove}
+      onMouseLeave={tilt.onMouseLeave}
+      style={tilt.style}
       className={cn(
         "card-surface group relative flex flex-col overflow-hidden transition-shadow",
         "hover:border-brand-500/40 hover:shadow-[0_0_0_1px_rgba(255,107,0,0.25),0_24px_56px_-24px_rgba(255,107,0,0.5)]",
         className,
       )}
     >
-      <div className="relative aspect-4/3 overflow-hidden bg-ink-50 dark:bg-ink-900">
+      <div className="relative aspect-4/3 overflow-hidden bg-ink-50 dark:bg-ink-950">
         <Image
           src={laptop.image}
           alt={`${laptop.name} laptop`}
@@ -534,7 +541,7 @@ export function SortDropdown({
         className={cn(
           "h-10 rounded-xl border border-ink-200 bg-white/80 px-3 pr-8 text-sm font-medium outline-none transition",
           "focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25",
-          "dark:border-white/15 dark:bg-ink-850 dark:text-ink-100",
+          "dark:border-white/15 dark:bg-ink-800 dark:text-ink-100",
         )}
       >
         {sortOptions.map((option) => (

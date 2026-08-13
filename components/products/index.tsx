@@ -173,7 +173,7 @@ export function ProductCard({ product, priority = false, className }: ProductCar
         className,
       )}
     >
-      <div className="relative aspect-4/3 overflow-hidden bg-ink-50 dark:bg-ink-900">
+      <div className="relative aspect-4/3 overflow-hidden bg-ink-50 dark:bg-ink-950">
         <Image
           src={product.image}
           alt={`${product.name} ${CATEGORY_NOUN[product.category]}`}

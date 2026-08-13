@@ -28,7 +28,7 @@ type Method = "password" | "magic";
 const initialState: AuthState = {};
 
 const inputClass =
-  "h-11 w-full rounded-xl border border-ink-200 bg-white/80 pl-10 pr-4 text-sm outline-none transition placeholder:text-ink-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25 dark:border-white/15 dark:bg-white/5 dark:placeholder:text-ink-500";
+  "h-11 w-full rounded-xl border border-ink-200 bg-white/80 pl-10 pr-4 text-sm outline-none transition placeholder:text-ink-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25 dark:border-white/15 dark:bg-ink-950/60 dark:placeholder:text-ink-500";
 
 export function AuthForm({
   mode,
@@ -71,7 +71,7 @@ export function AuthForm({
         <div
           role="tablist"
           aria-label="Sign-in method"
-          className="grid grid-cols-2 gap-1 rounded-xl bg-ink-100 p-1 dark:bg-white/5"
+          className="grid grid-cols-2 gap-1 rounded-xl bg-ink-100 p-1 dark:bg-ink-950/60"
         >
           {(
             [

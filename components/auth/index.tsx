@@ -118,7 +118,7 @@ function ProviderButton({
       className={cn(
         "inline-flex h-11 w-full items-center justify-center gap-2.5 rounded-xl border text-sm font-semibold transition",
         "border-ink-200 bg-white hover:border-brand-400 hover:bg-brand-50",
-        "dark:border-white/15 dark:bg-white/5 dark:hover:border-brand-500/60 dark:hover:bg-brand-500/10",
+        "dark:border-white/15 dark:bg-ink-950/60 dark:hover:border-brand-500/60 dark:hover:bg-brand-500/10",
         "disabled:pointer-events-none disabled:opacity-50",
       )}
     >
@@ -167,7 +167,7 @@ export function OAuthButtons({
 }
 
 const inputClass =
-  "h-11 w-full rounded-xl border border-ink-200 bg-white/80 pl-10 pr-4 text-sm outline-none transition placeholder:text-ink-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25 dark:border-white/15 dark:bg-white/5 dark:placeholder:text-ink-500";
+  "h-11 w-full rounded-xl border border-ink-200 bg-white/80 pl-10 pr-4 text-sm outline-none transition placeholder:text-ink-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25 dark:border-white/15 dark:bg-ink-950/60 dark:placeholder:text-ink-500";
 
 type Mode = "login" | "register";
 type Method = "password" | "magic";
@@ -215,7 +215,7 @@ export function AuthForm({
         <div
           role="tablist"
           aria-label="Sign-in method"
-          className="grid grid-cols-2 gap-1 rounded-xl bg-ink-100 p-1 dark:bg-white/5"
+          className="grid grid-cols-2 gap-1 rounded-xl bg-ink-100 p-1 dark:bg-ink-950/60"
         >
           {(
             [

@@ -19,8 +19,10 @@
 
 @theme {
   /*
-   * Brand orange. 500 is the exact brand value (#FF6B00) and is used wherever
-   * the colour is decorative — glows, borders, fills, icons.
+   * Brand orange. 500 is the exact brand value (#FF7D29, the light palette's
+   * accent) and is used wherever the colour is decorative — glows, borders,
+   * fills, icons. See the `.dark` block at the end of this file: dark mode
+   * re-points 400/500/600 to the dark palette's own accents.
    *
    * 600 and 700 are deliberately deeper than a naive ramp so they clear WCAG AA
    * as *text* on a light surface: 600 measures 4.78:1 on white, 700 measures
@@ -32,7 +34,7 @@
   --color-brand-200: #ffc49b;
   --color-brand-300: #ffa164;
   --color-brand-400: #ff8531;
-  --color-brand-500: #ff6b00;
+  --color-brand-500: #ff7d29;
   --color-brand-600: #c24e00;
   --color-brand-700: #9c3e00;
   --color-brand-800: #7a3103;
@@ -41,28 +43,55 @@
   /*
    * The ramp warms toward the light end and neutralises toward the dark end.
    *
-   * Light surfaces keep a warm cast (hue ~25°) so the orange reads as part of
-   * the palette rather than pasted onto it. Dark surfaces are deliberately
-   * neutral — a warm near-black made the whole dark theme look tinted, and the
-   * orange has more presence against a true black anyway.
+   * SURFACE STEPS COME FROM TWO AUTHORED PALETTES.
+   *
+   *   light  #FEFFD2  #FFEEA9  #FFBF78  #FF7D29   (cream → yellow → orange)
+   *   dark   #2F2519  #4A3F35  #FA7D09  #FF4301   (brown → taupe → orange)
+   *
+   * Mapped so the page/card relationship survives in both themes: the card
+   * must never share the page's colour or it loses its silhouette entirely and
+   * dissolves into the background.
+   *
+   *   light   page 50 (#FEFFD2)  <  card `bg-white`   (card LIGHTER than page)
+   *   dark    page 850 (#2F2519) >  card 900            (card DARKER than page)
+   *
+   * The two themes separate in opposite directions on purpose. Light mode
+   * lifts the card by going lighter; dark mode does the reverse, because on a
+   * mid-brown page a card one step lighter reads as a wash rather than as an
+   * object.
+   *
+   * The 900/950 values BELOW ARE THE LIGHT-MODE ONES. Dark mode re-points both
+   * in the `.dark` block at the end of this file, because the authored #1F1810
+   * sat too close to the page to give the card a silhouette. See the note there
+   * before touching either step.
+   *
+   * 950 and 850 are interpolated, not authored — 950 is the deepest well and
+   * the 3D card's edge faces, which must stay darker than the page.
+   *
+   * 300–700 stay NEUTRAL on purpose. They are text and control steps, not
+   * surfaces: `text-ink-700` is light-mode button text and `text-ink-500` is
+   * light-mode muted text, so pushing the palette's reds into them would turn
+   * ordinary UI copy red. Only the surface ends carry the hue.
    *
    * 400 is the muted-text step for DARK surfaces and 500 the one for LIGHT.
-   * No single grey can clear 4.5:1 against both #FAF8F6 and #0A0A0A — the two
-   * requirements are mutually exclusive — so the pairing is always
-   * `text-ink-500 dark:text-ink-400`.
+   * No single grey can clear 4.5:1 against both ends — the two requirements are
+   * mutually exclusive — so the pairing is always `text-ink-500
+   * dark:text-ink-400`. 400 is warmed to sit on the brown surfaces and measures
+   * 4.93:1 on the #4A3F35 card; the old neutral #A8A8A8 fell to 4.30:1 there.
+   * Do not darken it without rechecking that.
    */
-  --color-ink-50: #faf8f6;
-  --color-ink-100: #f1eeea;
-  --color-ink-200: #e4dfd9;
+  --color-ink-50: #feffd2;
+  --color-ink-100: #ffeea9;
+  --color-ink-200: #ffbf78;
   --color-ink-300: #c7bfb7;
-  --color-ink-400: #8b837c;
+  --color-ink-400: #bab3ab;
   --color-ink-500: #605952;
-  --color-ink-600: #4a4541;
-  --color-ink-700: #333130;
-  --color-ink-800: #212121;
-  --color-ink-850: #191919;
-  --color-ink-900: #121212;
-  --color-ink-950: #0a0a0a;
+  --color-ink-600: #545454;
+  --color-ink-700: #444444;
+  --color-ink-800: #4a3f35;
+  --color-ink-850: #2f2519;
+  --color-ink-900: #1f1810;
+  --color-ink-950: #120d08;
 
   --radius-card: 16px;
 
@@ -103,6 +132,52 @@
   }
 }
 
+/*
+ * The two palettes carry different accents — #FF7D29 in light, #E6501B/#C3110C
+ * in dark — so the accent is re-pointed per theme rather than forcing one
+ * orange to serve both. `@theme` emits these as custom properties that the
+ * generated utilities read through `var()`, so overriding them under `.dark`
+ * re-tints every `brand-*` utility at once, with no per-component changes.
+ *
+ * 400 stays the lighter step: `text-brand-600 dark:text-brand-400` is the
+ * app-wide pairing for accent text, and 400 is what has to clear AA on the
+ * dark surfaces.
+ */
+.dark {
+  /* A lightened tint of #FA7D09, not the palette value itself. 400 is accent
+     TEXT, and #FA7D09 on the #4A3F35 card measures 3.90:1 — below AA. This
+     tint keeps the palette's hue and clears it at 4.98:1. */
+  --color-brand-400: #ff9e45;
+  --color-brand-500: #fa7d09;
+  --color-brand-600: #ff4301;
+
+  /*
+   * SURFACE LADDER. Dark mode is the only theme that separates page from card
+   * by going DOWN, so the two steps below the page are re-pointed here rather
+   * than in `@theme` — light mode keeps the authored values, where `ink-900` is
+   * body text and `ink-950` is button text and must not move.
+   *
+   * The gap that matters is perceptual lightness (L*), not WCAG contrast: down
+   * here the ratio's +0.05 flare term compresses everything into the 1.1-1.3
+   * band whether the card is visible or not, so it is useless as a target.
+   *
+   *   page  ink-850  #2F2519   L* 15.5   (unchanged — the authored palette brown)
+   *   card  ink-900  #16110B   L*  5.4   was #1F1810, L* 8.9
+   *   well  ink-950  #0A0704   L*  2.0   was #120D08, L* 3.9
+   *
+   * That takes the page/card gap from 6.6 L* to 10.1 — half again as much
+   * separation, which is what stops the card dissolving into the page. 950
+   * follows it down so the recessed layer (3D card edge faces, inset wells,
+   * modal scrims) still sits BELOW the card instead of level with it.
+   *
+   * Both keep the palette's brown: hue 32deg, saturation 31%, matching #2F2519
+   * and the old #1F1810 exactly. Only lightness moves, so the cards go deeper
+   * without going grey.
+   */
+  --color-ink-900: #16110b;
+  --color-ink-950: #0a0704;
+}
+
 @layer base {
   * {
     border-color: theme(--color-ink-200);
@@ -117,7 +192,10 @@
     /* Warm off-white rather than pure white: cards are white, so the page
        tint is what lets them lift instead of dissolving into the background. */
     @apply bg-ink-50 text-ink-900 antialiased;
-    @apply dark:bg-ink-950 dark:text-ink-50;
+    /* The palette's DARK brown carries the page. The lighter taupe (`ink-800`)
+       was tried here and reads as tan, not as dark mode — it is kept for raised
+       chips and dropdowns, which need to sit above this. */
+    @apply dark:bg-ink-850 dark:text-ink-50;
     font-family: var(--font-sans);
   }
 
@@ -184,7 +262,10 @@
   /* Frosted-glass surfaces used by the navbar, drawers and floating panels. */
   .glass {
     @apply border border-ink-900/8 bg-white/75 backdrop-blur-xl;
-    @apply dark:border-white/10 dark:bg-white/5;
+    /* Tinted from the palette, never `white/5`. A white overlay reads as a
+       grey haze over a warm dark page — most visibly as a pale band across the
+       full-width sticky header — instead of as frosted glass. */
+    @apply dark:border-white/10 dark:bg-ink-900/60;
   }
 
   .glass-strong {
@@ -195,7 +276,15 @@
   /* The standard content card: soft shadow, 16px radius, theme aware. */
   .card-surface {
     @apply rounded-2xl border border-ink-200 bg-white shadow-[var(--shadow-soft)];
-    @apply dark:border-white/8 dark:bg-ink-900 dark:shadow-[0_1px_2px_rgba(0,0,0,0.5),0_18px_44px_-22px_rgba(0,0,0,0.9)];
+    /* Well below the page (`ink-850`), never near it: a card close to the
+       page's colour has no silhouette and dissolves into the background, and on
+       a mid-brown page going lighter washes out instead of reading as a solid
+       object. Going deep gives it a definite edge. The size of that drop is set
+       by the `--color-ink-900` override in `.dark` — read the note there before
+       adjusting this. */
+    /* Border still carries weight even with the tonal gap widened: it is what
+       keeps the corner radius legible where a card overlaps a dark section. */
+    @apply dark:border-white/12 dark:bg-ink-900 dark:shadow-[0_1px_2px_rgba(0,0,0,0.5),0_18px_44px_-22px_rgba(0,0,0,0.9)];
   }
 
   .glow-brand {

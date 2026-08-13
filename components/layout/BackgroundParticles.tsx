@@ -22,11 +22,15 @@ export function BackgroundParticles() {
     >
       <Particles
         className="h-full w-full"
-        quantity={240}
-        size={1.2}
-        staticity={35}
-        alphaRange={[0.35, 1]}
-        color="#ff6b00"
+        quantity={340}
+        size={1.4}
+        // Lower staticity = larger parallax throw per pixel of pointer travel;
+        // lower ease = fewer frames to catch up to it. Together the field reacts
+        // noticeably faster to the mouse without the particles' own drift speeding up.
+        staticity={18}
+        ease={22}
+        alphaRange={[0.45, 1]}
+        color="#ff7d29"
       />
     </div>
   );

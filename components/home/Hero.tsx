@@ -21,13 +21,12 @@ const STATS = [
 export function Hero() {
   return (
     <section className="relative overflow-hidden">
-      {/* Ambient glows */}
-      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
-        <div className="absolute left-1/2 top-[-14rem] size-[38rem] -translate-x-1/2 rounded-full bg-brand-500/20 blur-[120px] animate-[drift_22s_linear_infinite]" />
-        <div className="absolute -left-40 top-40 size-[26rem] rounded-full bg-brand-400/10 blur-[100px]" />
-        <div className="absolute -right-32 top-24 size-[30rem] rounded-full bg-brand-600/10 blur-[110px]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(255,107,0,0.08),transparent_60%)]" />
-      </div>
+      {/* No ambient glow layers here on purpose. Three 26-38rem circles at
+          blur-[100px]+ used to sit behind this section; against a dark page
+          they stack into a large washed-out haze that reads as fog over the
+          background rather than as atmosphere, and they flatten the contrast
+          the particle field depends on. The particle layer in the root layout
+          supplies the depth instead. */}
 
       {/* The particle field now lives in the root layout as a fixed, site-wide
           layer — see components/layout/BackgroundParticles.tsx. */}

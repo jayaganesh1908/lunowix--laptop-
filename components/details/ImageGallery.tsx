@@ -18,7 +18,7 @@ export function ImageGallery({ images, alt, className }: ImageGalleryProps) {
 
   return (
     <div className={cn("flex flex-col gap-4", className)}>
-      <div className="card-surface relative aspect-4/3 overflow-hidden bg-ink-50 dark:bg-ink-900">
+      <div className="card-surface relative aspect-4/3 overflow-hidden bg-ink-50 dark:bg-ink-950">
         <AnimatePresence mode="wait">
           <motion.div
             key={active}

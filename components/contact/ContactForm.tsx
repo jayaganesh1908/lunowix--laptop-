@@ -39,7 +39,7 @@ const fieldClass = (invalid: boolean) =>
   cn(
     "w-full rounded-xl border bg-white/80 px-4 py-3 text-sm outline-none transition placeholder:text-ink-400",
     "focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25",
-    "dark:bg-white/5 dark:placeholder:text-ink-500",
+    "dark:bg-ink-950/60 dark:placeholder:text-ink-500",
     invalid
       ? "border-rose-500 focus:border-rose-500 focus:ring-rose-500/25"
       : "border-ink-200 dark:border-white/15",

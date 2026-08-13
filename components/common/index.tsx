@@ -126,7 +126,7 @@ export function GameCard({
         <div className="flex items-center gap-3">
           <span
             aria-hidden
-            className="flex size-10 items-center justify-center rounded-xl bg-ink-100 text-xl dark:bg-white/5"
+            className="flex size-10 items-center justify-center rounded-xl bg-ink-100 text-xl dark:bg-ink-950/60"
           >
             {benchmark.icon}
           </span>
@@ -492,7 +492,7 @@ export function SearchBar({
         className={cn(
           "flex items-center gap-2 rounded-xl border border-ink-200 bg-white/80 px-3 backdrop-blur transition",
           "focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-500/25",
-          "dark:border-white/15 dark:bg-white/5",
+          "dark:border-white/15 dark:bg-ink-950/60",
           size === "lg" ? "h-13 px-4" : "h-10",
         )}
       >
@@ -621,7 +621,7 @@ export function SoftwareCard({
     >
       <span
         aria-hidden
-        className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-ink-100 text-xl dark:bg-white/5"
+        className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-ink-100 text-xl dark:bg-ink-950/60"
       >
         {software.icon}
       </span>

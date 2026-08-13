@@ -230,7 +230,7 @@ export function ComparisonTable({
           <tr className="border-b border-ink-900/5 dark:border-white/10">
             <th
               scope="col"
-              className="sticky left-0 z-10 w-40 bg-white p-4 text-left align-bottom text-xs font-bold uppercase tracking-widest text-ink-500 sm:w-52 dark:bg-ink-850 dark:text-ink-400"
+              className="sticky left-0 z-10 w-40 bg-white p-4 text-left align-bottom text-xs font-bold uppercase tracking-widest text-ink-500 sm:w-52 dark:bg-ink-900 dark:text-ink-400"
             >
               Specification
             </th>
@@ -269,7 +269,7 @@ export function ComparisonTable({
               <th
                 colSpan={entries.length + 1}
                 scope="colgroup"
-                className="bg-ink-50 px-4 py-2 text-left text-xs font-bold uppercase tracking-widest text-ink-500 dark:bg-white/[0.03] dark:text-ink-400"
+                className="bg-ink-50 px-4 py-2 text-left text-xs font-bold uppercase tracking-widest text-ink-500 dark:bg-ink-950/40 dark:text-ink-400"
               >
                 {group}
               </th>
@@ -283,7 +283,7 @@ export function ComparisonTable({
                 >
                   <th
                     scope="row"
-                    className="sticky left-0 z-10 bg-white p-4 text-left align-top font-medium text-ink-500 dark:bg-ink-850 dark:text-ink-400"
+                    className="sticky left-0 z-10 bg-white p-4 text-left align-top font-medium text-ink-500 dark:bg-ink-900 dark:text-ink-400"
                   >
                     {row.label}
                   </th>

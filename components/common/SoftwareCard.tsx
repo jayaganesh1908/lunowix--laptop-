@@ -28,7 +28,7 @@ export function SoftwareCard({
     >
       <span
         aria-hidden
-        className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-ink-100 text-xl dark:bg-white/5"
+        className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-ink-100 text-xl dark:bg-ink-950/60"
       >
         {software.icon}
       </span>

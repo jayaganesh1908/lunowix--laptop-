@@ -45,7 +45,7 @@ function ProviderButton({
       className={cn(
         "inline-flex h-11 w-full items-center justify-center gap-2.5 rounded-xl border text-sm font-semibold transition",
         "border-ink-200 bg-white hover:border-brand-400 hover:bg-brand-50",
-        "dark:border-white/15 dark:bg-white/5 dark:hover:border-brand-500/60 dark:hover:bg-brand-500/10",
+        "dark:border-white/15 dark:bg-ink-950/60 dark:hover:border-brand-500/60 dark:hover:bg-brand-500/10",
         "disabled:pointer-events-none disabled:opacity-50",
       )}
     >

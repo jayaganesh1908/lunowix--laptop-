@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import { Cpu, GitCompareArrows, HardDrive, Heart, MemoryStick, MonitorPlay } from "lucide-react";
@@ -19,6 +18,7 @@ import {
   shortGpu,
 } from "@/lib/utils/formatters";
 import { cn } from "@/lib/utils/cn";
+import { TiltBox } from "@/components/ui/3d-card";
 
 export interface LaptopCardProps {
   laptop: Laptop;
@@ -31,7 +31,6 @@ export function LaptopCard({ laptop, priority = false, className }: LaptopCardPr
   const wishlist = useWishlist();
   const compare = useCompare();
   const { toast } = useToast();
-
   const saved = wishlist.has(laptop.id);
   const comparing = compare.has(laptop.id);
   const discount = discountPercent(laptop.price, laptop.mrp);
@@ -52,17 +51,22 @@ export function LaptopCard({ laptop, priority = false, className }: LaptopCardPr
   };
 
   return (
-    <motion.article
+    <TiltBox
       variants={fadeUp}
       whileHover={{ y: -6 }}
       transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-      className={cn(
-        "card-surface group relative flex flex-col overflow-hidden transition-shadow",
+      depth={24}
+      intensity={12}
+      perspective={650}
+      className={className}
+      // `overflow-hidden` and the surface styling belong to the front face, not
+      // the tilting box — on the box, clipping would flatten the whole cuboid.
+      faceClassName={cn(
+        "card-surface group overflow-hidden transition-shadow",
         "hover:border-brand-500/40 hover:shadow-[0_0_0_1px_rgba(255,107,0,0.25),0_24px_56px_-24px_rgba(255,107,0,0.5)]",
-        className,
       )}
     >
-      <div className="relative aspect-4/3 overflow-hidden bg-ink-50 dark:bg-ink-900">
+      <div className="relative aspect-4/3 overflow-hidden bg-ink-50 dark:bg-ink-950">
         <Image
           src={laptop.image}
           alt={`${laptop.name} laptop`}
@@ -161,6 +165,6 @@ export function LaptopCard({ laptop, priority = false, className }: LaptopCardPr
           </div>
         </div>
       </div>
-    </motion.article>
+    </TiltBox>
   );
 }

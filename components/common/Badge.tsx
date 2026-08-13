@@ -14,7 +14,7 @@ const TONES: Record<BadgeTone, string> = {
   // ink-100 rather than ink-50: ink-50 is now the page background, so a neutral
   // badge sitting outside a card would otherwise have no fill at all.
   neutral:
-    "border-ink-200 bg-ink-100 text-ink-700 dark:border-white/10 dark:bg-white/5 dark:text-ink-200",
+    "border-ink-200 bg-ink-100 text-ink-700 dark:border-white/10 dark:bg-ink-950/60 dark:text-ink-200",
   success:
     "border-emerald-500/30 bg-emerald-50 text-emerald-800 dark:border-emerald-500/40 dark:bg-emerald-500/15 dark:text-emerald-200",
   info: "border-sky-500/30 bg-sky-50 text-sky-800 dark:border-sky-500/40 dark:bg-sky-500/15 dark:text-sky-200",
