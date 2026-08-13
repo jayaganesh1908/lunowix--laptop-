@@ -92,7 +92,7 @@ export function Hero() {
           stretch
           className="mt-2 max-w-3xl py-16 sm:py-20"
           titleClassName="block text-4xl font-bold leading-[1.08] tracking-tight sm:text-5xl lg:text-6xl"
-          strokeClassName="text-brand-500/55 dark:text-brand-500/45"
+          strokeClassName="glow-stroke text-brand-500/50 dark:text-brand-400/50"
         >
           <DecryptText
             segments={[
@@ -199,7 +199,7 @@ export function BudgetCategories() {
             <motion.div key={band.slug} variants={fadeUp}>
               <Link
                 href={`/laptops?budget=${band.slug}`}
-                className="card-surface group relative flex h-full flex-col overflow-hidden p-6 transition-shadow hover:border-brand-500/40 hover:shadow-[0_0_0_1px_rgba(255,107,0,0.25),0_24px_56px_-24px_rgba(255,107,0,0.5)]"
+                className="card-surface group relative flex h-full flex-col overflow-hidden p-6 transition-shadow hover:border-brand-500/40 hover:shadow-[var(--card-shadow-hover)]"
               >
                 <div
                   aria-hidden

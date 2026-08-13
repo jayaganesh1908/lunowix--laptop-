@@ -25,7 +25,7 @@ export function CategoryShowcase() {
           <Link
             key={category.slug}
             href={`/${category.route}`}
-            className="card-surface group flex flex-col p-6 transition hover:border-brand-500/40 hover:shadow-[0_0_0_1px_rgba(255,107,0,0.25),0_24px_56px_-24px_rgba(255,107,0,0.45)]"
+            className="card-surface group flex flex-col p-6 transition hover:border-brand-500/40 hover:shadow-[var(--card-shadow-hover)]"
           >
             <span className="text-3xl" aria-hidden>
               {category.icon}

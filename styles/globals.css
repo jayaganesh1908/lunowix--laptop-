@@ -143,6 +143,45 @@
  * app-wide pairing for accent text, and 400 is what has to clear AA on the
  * dark surfaces.
  */
+/*
+ * CARD GLOW. Every card carries a brand bloom at rest, not only on hover —
+ * a hover-only glow means the overwhelming majority of cards on screen show no
+ * accent at all, which is what made the grids read as flat.
+ *
+ * Three knobs, and they are the only place to turn them:
+ *
+ *   --card-glow            the accent, as raw channels so the alpha can vary
+ *   --card-glow-strength   resting bloom       (turn this up for "more glow")
+ *   --card-glow-hover      hover bloom
+ *
+ * Light mode runs much weaker on purpose: an orange halo on a white card over
+ * a cream page smears, where the same halo on a near-black card reads as light
+ * coming off an edge.
+ */
+:root {
+  --card-glow: 255 125 41; /* brand-500, light — #FF7D29 */
+  --card-glow-strength: 0.16;
+  --card-glow-hover: 0.4;
+  /*
+   * The crisp line around a hovered card, as opposed to the soft bloom behind
+   * it. Width and strength are deliberately SEPARATE knobs: widening reads as
+   * a heavier frame, raising the alpha reads as a hotter colour. Reach for the
+   * width first — the alpha is tuned to sit under the bloom without competing
+   * with it, and pushing it toward opaque makes the card look lit rather than
+   * outlined.
+   */
+  --card-ring-width: 3px;
+  --card-ring-hover: 0.35;
+
+  --card-shadow:
+    0 0 24px -8px rgb(var(--card-glow) / var(--card-glow-strength)),
+    var(--shadow-soft);
+  --card-shadow-hover:
+    0 0 0 var(--card-ring-width) rgb(var(--card-glow) / var(--card-ring-hover)),
+    0 0 32px -10px rgb(var(--card-glow) / var(--card-glow-hover)),
+    var(--shadow-lift);
+}
+
 .dark {
   /* A lightened tint of #FA7D09, not the palette value itself. 400 is accent
      TEXT, and #FA7D09 on the #4A3F35 card measures 3.90:1 — below AA. This
@@ -150,6 +189,26 @@
   --color-brand-400: #ff9e45;
   --color-brand-500: #fa7d09;
   --color-brand-600: #ff4301;
+
+  /* The deeper the card got, the more headroom the bloom has before it washes
+     anything out — so dark carries roughly double the light-mode strength. */
+  --card-glow: 250 125 9; /* brand-500, dark — #FA7D09 */
+  --card-glow-strength: 0.32;
+  --card-glow-hover: 0.6;
+  /* Carries slightly more alpha than light mode only because it sits on a
+     near-black card rather than white — same apparent weight, not a hotter
+     line. Width is inherited from `:root`; both themes frame at the same
+     thickness. */
+  --card-ring-hover: 0.45;
+
+  --card-shadow:
+    0 0 26px -6px rgb(var(--card-glow) / var(--card-glow-strength)),
+    0 1px 2px rgba(0, 0, 0, 0.5),
+    0 18px 44px -22px rgba(0, 0, 0, 0.9);
+  --card-shadow-hover:
+    0 0 0 var(--card-ring-width) rgb(var(--card-glow) / var(--card-ring-hover)),
+    0 0 40px -8px rgb(var(--card-glow) / var(--card-glow-hover)),
+    0 18px 44px -22px rgba(0, 0, 0, 0.9);
 
   /*
    * SURFACE LADDER. Dark mode is the only theme that separates page from card
@@ -275,7 +334,9 @@
 
   /* The standard content card: soft shadow, 16px radius, theme aware. */
   .card-surface {
-    @apply rounded-2xl border border-ink-200 bg-white shadow-[var(--shadow-soft)];
+    /* Shadow comes from `--card-shadow`, which already flips per theme, so
+       there is no `dark:shadow-*` here — see the CARD GLOW note above. */
+    @apply rounded-2xl border border-ink-200 bg-white shadow-[var(--card-shadow)];
     /* Well below the page (`ink-850`), never near it: a card close to the
        page's colour has no silhouette and dissolves into the background, and on
        a mid-brown page going lighter washes out instead of reading as a solid
@@ -284,13 +345,32 @@
        adjusting this. */
     /* Border still carries weight even with the tonal gap widened: it is what
        keeps the corner radius legible where a card overlaps a dark section. */
-    @apply dark:border-white/12 dark:bg-ink-900 dark:shadow-[0_1px_2px_rgba(0,0,0,0.5),0_18px_44px_-22px_rgba(0,0,0,0.9)];
+    @apply dark:border-white/12 dark:bg-ink-900;
   }
 
   .glow-brand {
+    /* Was hardcoded rgba(255,107,0) — #FF6B00, the accent from BEFORE the
+       palette migration. It now tracks whichever brand orange the theme is
+       actually using. */
     box-shadow:
-      0 0 0 1px rgba(255, 107, 0, 0.35),
-      0 16px 44px -16px rgba(255, 107, 0, 0.5);
+      0 0 0 1px rgb(var(--card-glow) / 0.35),
+      0 16px 44px -16px rgb(var(--card-glow) / 0.5);
+  }
+
+  /*
+   * Neon bloom for an SVG stroke — `box-shadow` follows the element's box, so
+   * it cannot trace a drawn path; `drop-shadow` follows the rendered alpha and
+   * can.
+   *
+   * Two passes on purpose: the tight one keeps the line's own edge crisp, the
+   * wide one supplies the halo. A single wide shadow just makes the stroke
+   * look out of focus.
+   *
+   * `currentColor` throughout, so the glow always matches whatever colour the
+   * stroke is set to and picks up its alpha — no second colour to keep in sync.
+   */
+  .glow-stroke {
+    filter: drop-shadow(0 0 4px currentColor) drop-shadow(0 0 13px currentColor);
   }
 
   .text-gradient-brand {

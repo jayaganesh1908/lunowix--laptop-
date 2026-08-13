@@ -36,7 +36,7 @@ export function BudgetCategories() {
             <motion.div key={band.slug} variants={fadeUp}>
               <Link
                 href={`/laptops?budget=${band.slug}`}
-                className="card-surface group relative flex h-full flex-col overflow-hidden p-6 transition-shadow hover:border-brand-500/40 hover:shadow-[0_0_0_1px_rgba(255,107,0,0.25),0_24px_56px_-24px_rgba(255,107,0,0.5)]"
+                className="card-surface group relative flex h-full flex-col overflow-hidden p-6 transition-shadow hover:border-brand-500/40 hover:shadow-[var(--card-shadow-hover)]"
               >
                 <div
                   aria-hidden

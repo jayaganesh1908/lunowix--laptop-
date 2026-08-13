@@ -604,7 +604,7 @@ export function CompareWorkspace() {
                     compare.setSlot(0, pair[0].id);
                     compare.setSlot(1, pair[1].id);
                   }}
-                  className="card-surface w-full p-4 text-left transition hover:border-brand-500/40"
+                  className="card-surface w-full p-4 text-left transition hover:border-brand-500"
                 >
                   <span className="block text-sm font-semibold">{pair[0].name}</span>
                   <span className="my-1 block text-xs font-bold uppercase tracking-widest text-brand-600 dark:text-brand-400">

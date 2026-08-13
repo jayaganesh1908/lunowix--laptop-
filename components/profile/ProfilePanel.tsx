@@ -103,7 +103,7 @@ export function ProfilePanel() {
           { label: "In comparison", value: compare.count, href: "/compare" },
           { label: "Past comparisons", value: compare.history.length, href: "/compare" },
         ].map((stat) => (
-          <Link key={stat.label} href={stat.href} className="card-surface p-5 transition hover:border-brand-500/40">
+          <Link key={stat.label} href={stat.href} className="card-surface p-5 transition hover:border-brand-500/40 hover:shadow-[var(--card-shadow-hover)]">
             <p className="font-mono text-3xl font-bold tabular-nums text-brand-600 dark:text-brand-400">
               {stat.value}
             </p>
@@ -132,7 +132,7 @@ export function ProfilePanel() {
               <li key={laptop.id}>
                 <Link
                   href={`/laptops/${laptop.id}`}
-                  className="card-surface flex items-center gap-3 p-3 transition hover:border-brand-500/40"
+                  className="card-surface flex items-center gap-3 p-3 transition hover:border-brand-500/40 hover:shadow-[var(--card-shadow-hover)]"
                 >
                   <Image
                     src={laptop.image}

@@ -28,7 +28,7 @@ export function GameCard({
       whileHover={{ y: -4, scale: 1.02 }}
       transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
       className={cn(
-        "card-surface flex flex-col gap-3 p-4 hover:border-brand-500/40",
+        "card-surface flex flex-col gap-3 p-4 hover:border-brand-500/40 hover:shadow-[var(--card-shadow-hover)]",
         className,
       )}
     >

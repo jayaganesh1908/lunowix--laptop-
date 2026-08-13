@@ -97,7 +97,7 @@ export function LaptopCard({ laptop, priority = false, className }: LaptopCardPr
       style={tilt.style}
       className={cn(
         "card-surface group relative flex flex-col overflow-hidden transition-shadow",
-        "hover:border-brand-500/40 hover:shadow-[0_0_0_1px_rgba(255,107,0,0.25),0_24px_56px_-24px_rgba(255,107,0,0.5)]",
+        "hover:border-brand-500/40 hover:shadow-[var(--card-shadow-hover)]",
         className,
       )}
     >

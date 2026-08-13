@@ -19,7 +19,7 @@ export function FeatureCard({ icon, title, description, className }: FeatureCard
       transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
       className={cn(
         "card-surface group relative overflow-hidden p-6",
-        "hover:border-brand-500/40 hover:shadow-[0_0_0_1px_rgba(255,107,0,0.25),0_20px_48px_-20px_rgba(255,107,0,0.45)]",
+        "hover:border-brand-500/40 hover:shadow-[var(--card-shadow-hover)]",
         className,
       )}
     >
