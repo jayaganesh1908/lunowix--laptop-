@@ -1,9 +1,16 @@
 "use client";
 
 import * as React from "react";
-import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
+import {
+  motion,
+  useMotionTemplate,
+  useMotionValue,
+  useSpring,
+  useTransform,
+} from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
 import { usePrefersReducedMotion } from "@/lib/hooks/usePrefersReducedMotion";
+import { useHoverCapable } from "@/components/ui/be-ui-tilt-card";
 import { cn } from "@/lib/utils/cn";
 
 const springConfig = { damping: 15, stiffness: 150 };
@@ -42,6 +49,10 @@ export interface UseTiltOptions {
  */
 export function useTilt({ intensity = 10.5, perspective = 700 }: UseTiltOptions = {}) {
   const prefersReducedMotion = usePrefersReducedMotion();
+  // The tilt handlers are harmless without a pointer — `mousemove` simply never
+  // fires — but the glare is not: it would render frozen at dead centre on
+  // every touch device, a highlight that never moves.
+  const canHover = useHoverCapable();
 
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
@@ -52,13 +63,29 @@ export function useTilt({ intensity = 10.5, perspective = 700 }: UseTiltOptions 
   const rotateX = useTransform(springY, [-0.5, 0.5], [`${intensity}deg`, `-${intensity}deg`]);
   const rotateY = useTransform(springX, [-0.5, 0.5], [`-${intensity}deg`, `${intensity}deg`]);
 
+  // Glare position rides the same pointer, but on its own motion values rather
+  // than a transform of `mouseX`/`mouseY`: those snap back to centre on leave,
+  // which would slide the highlight across the card on the way out. Left where
+  // the cursor last was, it simply stops.
+  //
+  // `currentColor` rather than a fixed white — body sets `text-ink-900
+  // dark:text-ink-50`, so the highlight inherits the right end of the palette
+  // in each theme instead of washing the light card out.
+  const glareX = useMotionValue(50);
+  const glareY = useMotionValue(50);
+  const glareBackground = useMotionTemplate`radial-gradient(circle at ${glareX}% ${glareY}%, currentColor, transparent 50%)`;
+
   const handleMouseMove = React.useCallback(
     (event: React.MouseEvent<HTMLElement>) => {
       const { width, height, left, top } = event.currentTarget.getBoundingClientRect();
-      mouseX.set((event.clientX - left) / width - 0.5);
-      mouseY.set((event.clientY - top) / height - 0.5);
+      const px = (event.clientX - left) / width;
+      const py = (event.clientY - top) / height;
+      mouseX.set(px - 0.5);
+      mouseY.set(py - 0.5);
+      glareX.set(px * 100);
+      glareY.set(py * 100);
     },
-    [mouseX, mouseY],
+    [mouseX, mouseY, glareX, glareY],
   );
 
   const handleMouseLeave = React.useCallback(() => {
@@ -71,6 +98,9 @@ export function useTilt({ intensity = 10.5, perspective = 700 }: UseTiltOptions 
       style: { transformStyle: "preserve-3d" as const },
       onMouseMove: undefined,
       onMouseLeave: undefined,
+      // Undefined rather than absent so the two shapes match and callers can
+      // read `.glareBackground` without narrowing the union first.
+      glareBackground: undefined,
     };
   }
 
@@ -83,6 +113,7 @@ export function useTilt({ intensity = 10.5, perspective = 700 }: UseTiltOptions 
     },
     onMouseMove: handleMouseMove,
     onMouseLeave: handleMouseLeave,
+    glareBackground: canHover ? glareBackground : undefined,
   };
 }
 
@@ -95,6 +126,12 @@ export interface TiltBoxProps extends Omit<MotionArticleProps, "children"> {
   perspective?: number;
   /** Corner radius in px. Must match the front face's rounding — see below. */
   radius?: number;
+  /**
+   * Cursor-tracking highlight on the front face. On by default: the tilt reads
+   * as a solid object turning, and a surface that turns without its highlight
+   * moving reads as matte paper rather than as a lit object.
+   */
+  glare?: boolean;
   /** Classes for the front face: the visible card surface. */
   faceClassName?: string;
   /** Classes for the five hidden faces (back + four edges). */
@@ -130,6 +167,7 @@ export const TiltBox = React.forwardRef<HTMLElement, TiltBoxProps>(
       intensity = 12,
       perspective = 650,
       radius = 16,
+      glare = true,
       faceClassName,
       edgeClassName,
       className,
@@ -215,6 +253,17 @@ export const TiltBox = React.forwardRef<HTMLElement, TiltBoxProps>(
             the clipping the outer element cannot have. */}
         <div className={cn("relative flex flex-1 flex-col", faceClassName)}>
           {children}
+          {/* Last child so it lies over the content, and on the FRONT FACE
+              rather than the box — the face is what clips to the rounded
+              corners, so on the box the highlight would spill past them and
+              over the edge strips. */}
+          {glare && tilt.glareBackground ? (
+            <motion.div
+              aria-hidden
+              style={{ background: tilt.glareBackground }}
+              className="pointer-events-none absolute inset-0 opacity-15"
+            />
+          ) : null}
         </div>
       </motion.article>
     );

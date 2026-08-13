@@ -200,6 +200,17 @@ export function LaptopCard({ laptop, priority = false, className }: LaptopCardPr
           </div>
         </div>
       </div>
+
+      {/* Cursor-tracking highlight, matching `TiltBox`'s. Last child so it lies
+          over the content; `currentColor` picks up the right end of the palette
+          per theme. */}
+      {tilt.glareBackground ? (
+        <motion.div
+          aria-hidden
+          style={{ background: tilt.glareBackground }}
+          className="pointer-events-none absolute inset-0 opacity-15"
+        />
+      ) : null}
     </motion.article>
   );
 }
