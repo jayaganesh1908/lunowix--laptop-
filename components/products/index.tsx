@@ -23,6 +23,7 @@ import type { LucideIcon } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Badge, EmptyState, Rating } from "@/components/common/Display";
 import { useToast } from "@/components/providers";
+import { TiltBox } from "@/components/ui/3d-card";
 import { sortProducts } from "@/lib/data/products";
 import { useCompare, useDebouncedValue, usePrefersReducedMotion, useWishlist } from "@/lib/hooks";
 import {
@@ -163,14 +164,20 @@ export function ProductCard({ product, priority = false, className }: ProductCar
   };
 
   return (
-    <motion.article
+    <TiltBox
       variants={fadeUp}
       whileHover={{ y: -6 }}
       transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-      className={cn(
-        "card-surface group relative flex flex-col overflow-hidden transition-shadow",
+      depth={24}
+      intensity={12}
+      perspective={650}
+      className={className}
+      // `overflow-hidden` and the surface styling belong to the front face, not
+      // the tilting box — on the box, clipping would flatten the whole cuboid.
+      // `relative flex flex-col` is dropped: the front face already supplies it.
+      faceClassName={cn(
+        "card-surface group overflow-hidden transition-shadow",
         "hover:border-brand-500/40 hover:shadow-[var(--card-shadow-hover)]",
-        className,
       )}
     >
       <div className="relative aspect-4/3 overflow-hidden bg-ink-50 dark:bg-ink-950">
@@ -272,7 +279,7 @@ export function ProductCard({ product, priority = false, className }: ProductCar
           </div>
         </div>
       </div>
-    </motion.article>
+    </TiltBox>
   );
 }
 

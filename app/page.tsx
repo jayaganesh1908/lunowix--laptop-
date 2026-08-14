@@ -7,7 +7,7 @@ import { NewsletterSection } from "@/components/home/NewsletterSection";
 import { getLaptops } from "@/lib/db/catalogue";
 
 export const metadata: Metadata = {
-  title: "Find Your Perfect Laptop",
+  title: "Find Your Perfect Electronics",
   description:
     "Browse by budget, compare specs, discover gaming performance, software compatibility, and find your ideal laptop.",
   alternates: { canonical: "/" },

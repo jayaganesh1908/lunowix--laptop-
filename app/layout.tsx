@@ -26,7 +26,7 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "Lunowix — Find Your Perfect Laptop",
+    default: "Lunowix — Find Your Perfect Electronics",
     template: "%s · Lunowix",
   },
   description:
@@ -42,14 +42,14 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     siteName: "Lunowix",
-    title: "Lunowix — Find Your Perfect Laptop",
+    title: "Lunowix — Find Your Perfect Electronics",
     description:
       "Budget-first laptop recommendations with gaming benchmarks and software compatibility for every machine.",
     url: siteUrl,
   },
   twitter: {
     card: "summary_large_image",
-    title: "Lunowix — Find Your Perfect Laptop",
+    title: "Lunowix — Find Your Perfect Electronics",
     description:
       "Budget-first laptop recommendations with gaming benchmarks and software compatibility.",
   },

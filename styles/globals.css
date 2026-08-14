@@ -52,13 +52,26 @@
    * must never share the page's colour or it loses its silhouette entirely and
    * dissolves into the background.
    *
-   *   light   page 50 (#FEFFD2)  <  card `bg-white`   (card LIGHTER than page)
+   *   light   page 50 (#F5F1DE)  <  card `bg-white`   (card LIGHTER than page)
    *   dark    page 850 (#2F2519) >  card 900            (card DARKER than page)
    *
    * The two themes separate in opposite directions on purpose. Light mode
    * lifts the card by going lighter; dark mode does the reverse, because on a
    * mid-brown page a card one step lighter reads as a wash rather than as an
    * object.
+   *
+   * 50 is DEEPER than the authored #FEFFD2, which is the one place the palette
+   * is not taken literally. A white card on that cream sat 1.08 L* above it —
+   * no silhouette at all, the same failure dark mode had. Light mode has no
+   * headroom to fix this from the card side, since the card is already at the
+   * white ceiling, so the ground has to come down instead. At #F5F1DE the gap
+   * is 5.0 L*, just above the conventional light-mode page/card relationship
+   * (Tailwind's gray-100 under a white card gives 3.8).
+   *
+   * Chroma drops 22.7 → 9.8 in the same move. #FEFFD2 across a full viewport
+   * read as highlighter yellow rather than as warmth; the deeper, calmer tint
+   * still reads warm without naming itself. Because `ink-50` is also the light
+   * image well and the footer wash, both gain the same recess for free.
    *
    * The 900/950 values BELOW ARE THE LIGHT-MODE ONES. Dark mode re-points both
    * in the `.dark` block at the end of this file, because the authored #1F1810
@@ -80,7 +93,7 @@
    * 4.93:1 on the #4A3F35 card; the old neutral #A8A8A8 fell to 4.30:1 there.
    * Do not darken it without rechecking that.
    */
-  --color-ink-50: #feffd2;
+  --color-ink-50: #f5f1de;
   --color-ink-100: #ffeea9;
   --color-ink-200: #ffbf78;
   --color-ink-300: #c7bfb7;
@@ -160,7 +173,13 @@
  */
 :root {
   --card-glow: 255 125 41; /* brand-500, light — #FF7D29 */
-  --card-glow-strength: 0.16;
+  /* Raised from 0.16 when the page token deepened to #F5F1DE. In light mode the
+     bloom DARKENS its ground rather than lighting it, so a deeper page gives the
+     same orange less room to register: at 0.16 the peak fell from 5.7 to 5.1 L*
+     below the page. 0.24 restores it and a little more, at 7.6 L*. It stays well
+     under dark's 17.0 on purpose — a light theme carrying a dark theme's glow
+     reads as a rendering fault, not as atmosphere. */
+  --card-glow-strength: 0.24;
   --card-glow-hover: 0.4;
   /*
    * The crisp line around a hovered card, as opposed to the soft bloom behind

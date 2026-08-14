@@ -1,0 +1,105 @@
+LUNOWIX — DESIGN PROGRESS
+=========================
+
+Format: newest first. Measurements are CIELAB L* unless stated.
+Source of truth for values is styles/globals.css; DESIGN_SYSTEM.md explains the reasoning.
+
+
+2026-08-14 — Light mode surface pass (design-audit, Phases 1-3)
+---------------------------------------------------------------
+Light mode had never received the treatment dark mode got, and lagged badly.
+
+PHASE 1 (critical) — one token, three findings resolved
+  --color-ink-50: #FEFFD2 -> #F5F1DE
+
+    page -> card gap          1.08 -> 5.01 L*      (target >= 4)
+    page chroma               22.7 -> 9.8
+    header glass vs page      0.80 -> 3.70 L*
+    image well recess on card 1.10 -> 5.00 L*
+
+  Light mode has no headroom on the card side (white is the ceiling), so the
+  ground had to come down. ink-50 is also the image well and footer ground, so
+  all three moved together with no component edits.
+
+  Unchanged, verified: body text 17.55:1, muted 7.57:1, brand eyebrow 4.79:1,
+  badge chip 6 L* recess, and all of dark mode (page 15.5, card 5.4, gap 10.09).
+
+PHASE 2 (refinement)
+  Footer band was a provable no-op: bg-ink-50/60 over an ink-50 page composites
+  to the page exactly (-0.15 L*). Changed to a neutral scrim bg-ink-900/5,
+  matching how the dark variant already works.
+    footer band vs page       -0.15 -> 3.87 L*   (dark: 4.07 L*)
+
+PHASE 3 (polish)
+  --card-glow-strength (light): 0.16 -> 0.24
+  In light the bloom darkens its ground, so a deeper page gave the same orange
+  less room. Peak had fallen 5.70 -> 5.12 L*; 0.24 restores it at 7.63 L*.
+  Deliberately still under dark's 17.0 — see DESIGN_SYSTEM.md.
+
+  Badge chip left alone (already correct at 6 L* recess).
+
+  Broke every route mid-phase with a JSX comment before a root element
+  (HTTP 500). Fixed; recorded in LESSONS.md.
+
+
+2026-08-13 — Card glow and hover stroke
+----------------------------------------
+Card accent was hover-only, so at most one card per grid carried any brand
+colour. Now always present, hover is a step up.
+
+  Centralised into --card-glow / -strength / -hover / --card-ring-width /
+  --card-ring-hover, replacing 8 copies of the same arbitrary shadow string.
+  Hover stroke 1px -> 3px, alpha unchanged (width and alpha are separate knobs).
+
+  Fixed: every card glow still used rgba(255,107,0) = #FF6B00, the accent from
+  BEFORE the warm-palette migration. .glow-brand had the same stale value.
+  Five cards had a border tint but no ring at all on hover.
+
+  Added .glow-stroke (drop-shadow, not box-shadow) for the hand-written title.
+
+
+2026-08-13 — Phones and headphones surfaced
+--------------------------------------------
+Both categories were already complete — 19 phones, 17 headphones, working index
+and detail routes — but unreachable: the navbar hardcoded its links and had only
+ever gained /laptops. Nav and footer now derive from `categories` in lib/types.
+
+The two navbar copies had drifted in OPPOSITE directions. See LESSONS.md.
+
+
+2026-08-13 — Dark mode card depth
+----------------------------------
+Page #2F2519 vs card #1F1810 was only 6.6 L* — cards read as one wash with the
+background.
+
+  ink-900 (card)  #1F1810 -> #16110B   L* 8.9 -> 5.4
+  ink-950 (well)  #120D08 -> #0A0704   L* 3.9 -> 2.0
+  page -> card gap  6.6 -> 10.1 L*
+
+  Scoped to .dark: in light mode ink-900 is body text and ink-950 is button
+  text, neither of which may move.
+
+  Recessed elements that were exactly the card colour (inputs, badges, icon
+  tiles, image wells) moved to the ink-950 family.
+
+  Two bugs found while verifying: the compare sticky column used the page token
+  while mirroring bg-white (the card token) in light; the sort dropdown was
+  exactly the page colour.
+
+
+OPEN / NOT DONE
+---------------
+- Scroll-reveal fragility: 26 elements ship with inline opacity:0 and depend on
+  a JS observer. Fast Refresh has left them permanently invisible. See
+  LESSONS.md for options. UNRESOLVED.
+- SEO copy still laptop-only ("Browse laptops by budget…", keywords "gaming
+  laptop" etc.) though titles now say Electronics and the nav carries three
+  categories.
+- Non-card orange glows still on the pre-migration #FF6B00: primary button
+  gradient, logo mark, section background washes, admin chart hover fills.
+- components/<domain>/index.tsx duplicates must be edited in parallel with their
+  single-component counterparts.
+- lib/types/laptop.ts vs lib/types/index.ts both define Laptop — 8 pre-existing
+  tsc errors.
+- Full-app audit not run. This pass covered light-mode card treatment and the
+  surfaces it directly implicates, per the request.

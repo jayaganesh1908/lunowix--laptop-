@@ -59,7 +59,7 @@ export function Hero() {
             segments={[
               { text: "Find", decrypt: true },
               { text: " Your Perfect " },
-              { text: "Laptop", decrypt: true },
+              { text: "Electronics", decrypt: true },
             ]}
           />
         </HandWrittenTitle>

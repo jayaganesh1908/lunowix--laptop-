@@ -46,8 +46,13 @@ const SOCIALS = [
 ];
 
 export function Footer() {
+  /* The band is a neutral scrim, not an `ink-50` wash. `bg-ink-50/60` over an
+     `ink-50` page composites to the page exactly, so it was invisible in light
+     mode — provably so once the page token deepened. Darkening whatever sits
+     behind it is what the dark variant already does, so both themes now express
+     the footer the same way. */
   return (
-    <footer className="mt-24 border-t border-ink-900/5 bg-ink-50/60 dark:border-white/10 dark:bg-ink-900/40">
+    <footer className="mt-24 border-t border-ink-900/5 bg-ink-900/5 dark:border-white/10 dark:bg-ink-900/40">
       <div className="mx-auto w-full max-w-[1400px] px-4 py-14 sm:px-6 lg:px-8">
         <div className="grid gap-10 lg:grid-cols-4">
           <div className="lg:col-span-1">
