@@ -92,7 +92,7 @@ export function Hero() {
           stretch
           className="mt-2 max-w-3xl py-16 sm:py-20"
           titleClassName="block text-4xl font-bold leading-[1.08] tracking-tight sm:text-5xl lg:text-6xl"
-          strokeClassName="glow-stroke text-brand-500/50 dark:text-brand-400/50"
+          strokeClassName="glow-stroke text-brand-500 dark:text-brand-500"
         >
           <DecryptText
             segments={[

@@ -2,7 +2,8 @@
 
 import { useCallback, useMemo } from "react";
 import { useLocalStorage } from "./useLocalStorage";
-import { getLaptopById } from "@/lib/data/laptops";
+import { getProductsByIds } from "@/lib/data/products";
+import { type Laptop } from "@/lib/types";
 
 export const WISHLIST_STORAGE_KEY = "lunowix:wishlist";
 
@@ -33,10 +34,22 @@ export function useWishlist() {
 
   const clear = useCallback(() => setIds([]), [setIds]);
 
+  /*
+   * Resolved against the cross-category registry, not `getLaptopById`.
+   *
+   * Phone and headphone cards carry the same heart button, and they save
+   * through `lib/hooks/index.ts`, whose copy of this hook already resolved
+   * across every catalogue. This copy did not, and the wishlist page reads
+   * THIS one — so a saved phone stayed in storage and counted in the nav badge
+   * while the board rendered "Nothing saved yet".
+   */
+  const products = useMemo(() => getProductsByIds(ids), [ids]);
+
+  /** Kept for the laptop-only surfaces that still expect this shape. */
   const laptops = useMemo(
-    () => ids.map(getLaptopById).filter((laptop) => laptop !== undefined),
-    [ids],
+    () => products.filter((product): product is Laptop => product.category === "laptop"),
+    [products],
   );
 
-  return { ids, laptops, count: ids.length, has, add, remove, toggle, clear, hydrated };
+  return { ids, products, laptops, count: ids.length, has, add, remove, toggle, clear, hydrated };
 }

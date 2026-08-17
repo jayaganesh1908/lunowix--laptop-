@@ -4,7 +4,10 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { ArrowUpRight, IndianRupee } from "lucide-react";
 import { SectionHeading } from "@/components/common/SectionHeading";
-import { budgetBands, laptopsInBand } from "@/lib/data/laptops";
+import { budgetBands } from "@/lib/data/laptops";
+/* Counts every catalogue, not just laptops — a band holding 4 laptops, 6 phones
+   and 3 headphones used to advertise "4 laptops". */
+import { productsInBand } from "@/lib/data/products";
 import { fadeUp, inView, staggerContainer } from "@/lib/utils/animations";
 import { formatPriceShort } from "@/lib/utils/formatters";
 
@@ -27,15 +30,15 @@ export function BudgetCategories() {
         className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
       >
         {budgetBands.map((band) => {
-          const matches = laptopsInBand(band);
+          const matches = productsInBand(band);
           const cheapest = matches.length
-            ? Math.min(...matches.map((laptop) => laptop.price))
+            ? Math.min(...matches.map((product) => product.price))
             : 0;
 
           return (
             <motion.div key={band.slug} variants={fadeUp}>
               <Link
-                href={`/laptops?budget=${band.slug}`}
+                href={`/products?budget=${band.slug}`}
                 className="card-surface group relative flex h-full flex-col overflow-hidden p-6 transition-shadow hover:border-brand-500/40 hover:shadow-[var(--card-shadow-hover)]"
               >
                 <div
@@ -62,7 +65,7 @@ export function BudgetCategories() {
 
                 <div className="relative mt-5 flex items-center gap-3 border-t border-ink-900/5 pt-4 text-xs dark:border-white/10">
                   <span className="font-semibold text-brand-700 dark:text-brand-400">
-                    {matches.length} {matches.length === 1 ? "laptop" : "laptops"}
+                    {matches.length} {matches.length === 1 ? "product" : "products"}
                   </span>
                   {matches.length ? (
                     <span className="text-ink-500 dark:text-ink-400">

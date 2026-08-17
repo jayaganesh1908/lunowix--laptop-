@@ -3,13 +3,15 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { LaptopCard } from "@/components/laptops/LaptopCard";
+/* Generic card: the section spans every category now, and `LaptopCard` is
+   typed to `Laptop`. */
+import { ProductCard } from "@/components/products";
 import { SectionHeading } from "@/components/common/SectionHeading";
 import { buttonStyles } from "@/components/common/buttonStyles";
-import type { Laptop } from "@/lib/types/laptop";
+import type { Product } from "@/lib/types";
 import { inView, staggerContainer } from "@/lib/utils/animations";
 
-export function FeaturedLaptops({ laptops }: { laptops: Laptop[] }) {
+export function FeaturedLaptops({ laptops }: { laptops: Product[] }) {
   return (
     <section
       aria-labelledby="featured-heading"
@@ -18,11 +20,11 @@ export function FeaturedLaptops({ laptops }: { laptops: Laptop[] }) {
       <SectionHeading
         align="left"
         eyebrow="Reader favourites"
-        title={<span id="featured-heading">Featured laptops</span>}
-        description="The machines people compare, save and buy most often this quarter."
+        title={<span id="featured-heading">Featured picks</span>}
+        description="The laptops, phones and headphones people compare, save and buy most often this quarter."
         action={
-          <Link href="/laptops" className={buttonStyles({ variant: "outline" })}>
-            View all laptops
+          <Link href="/products" className={buttonStyles({ variant: "outline" })}>
+            Browse everything
             <ArrowRight className="size-4" aria-hidden />
           </Link>
         }
@@ -34,7 +36,7 @@ export function FeaturedLaptops({ laptops }: { laptops: Laptop[] }) {
         className="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4"
       >
         {laptops.map((laptop) => (
-          <LaptopCard key={laptop.id} laptop={laptop} />
+          <ProductCard key={laptop.id} product={laptop} />
         ))}
       </motion.div>
     </section>

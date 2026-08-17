@@ -416,7 +416,7 @@ export interface SearchBarProps {
 }
 
 export function SearchBar({
-  placeholder = "Search laptops, GPUs, games or software…",
+  placeholder = "Search laptops, phones, headphones, games or software…",
   defaultValue = "",
   autoFocus = false,
   size = "sm",
@@ -506,7 +506,7 @@ export function SearchBar({
           aria-expanded={showList}
           aria-controls={listboxId}
           aria-autocomplete="list"
-          aria-label="Search laptops"
+          aria-label="Search products"
           autoFocus={autoFocus}
           value={value}
           placeholder={placeholder}

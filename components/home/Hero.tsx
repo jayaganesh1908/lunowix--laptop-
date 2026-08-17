@@ -6,16 +6,26 @@ import { ArrowRight, GitCompareArrows, Sparkles } from "lucide-react";
 import { buttonStyles } from "@/components/common/buttonStyles";
 import { DecryptText } from "@/components/ui/decrypt-text";
 import { HandWrittenTitle } from "@/components/ui/hand-writing-text";
-import { laptops } from "@/lib/data/laptops";
+import { allProducts, productCounts } from "@/lib/data/products";
 import { games } from "@/lib/data/games";
-import { softwareCatalog } from "@/lib/data/software";
 import { fadeUp, staggerContainer } from "@/lib/utils/animations";
+import { RotatingWordLink } from "@/components/ui/rotating-word-link";
+
+/* Counted across every catalogue. "Laptops profiled" undersold the site by
+   two thirds once phones and headphones shipped. */
+/* "Mobiles" rather than "Phones" to match how the label reads aloud in the
+   button; the route stays `/phones`, which is what the nav and data use. */
+const EXPLORE_TARGETS = [
+  { word: "Laptops", href: "/laptops" },
+  { word: "Mobiles", href: "/phones" },
+  { word: "Headphones", href: "/headphones" },
+];
 
 const STATS = [
-  { value: `${laptops.length}`, label: "Laptops profiled" },
+  { value: `${allProducts.length}`, label: "Products profiled" },
+  { value: `${productCounts.phone + productCounts.headphone}`, label: "Phones & audio" },
   { value: `${games.length}`, label: "Games benchmarked" },
-  { value: `${softwareCatalog.length}`, label: "Apps checked" },
-  { value: "7", label: "Brands covered" },
+  { value: `${new Set(allProducts.map((p) => p.brand)).size}`, label: "Brands covered" },
 ];
 
 export function Hero() {
@@ -53,7 +63,7 @@ export function Hero() {
           stretch
           className="mt-2 max-w-3xl py-16 sm:py-20"
           titleClassName="block text-4xl font-bold leading-[1.08] tracking-tight sm:text-5xl lg:text-6xl"
-          strokeClassName="glow-stroke text-brand-500/50 dark:text-brand-400/50"
+          strokeClassName="glow-stroke text-brand-500 dark:text-brand-500"
         >
           <DecryptText
             segments={[
@@ -68,21 +78,23 @@ export function Hero() {
           variants={fadeUp}
           className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-ink-600 sm:text-lg dark:text-ink-300"
         >
-          Browse by budget, compare specs, discover gaming performance, software
-          compatibility, and find your ideal laptop.
+          Browse laptops, phones and headphones by budget, compare specs side by
+          side, and check real performance before you buy.
         </motion.p>
 
         <motion.div
           variants={fadeUp}
           className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row"
         >
-          <Link
-            href="/laptops"
+          {/* The label cycles and the destination follows it, so this pauses on
+              hover and focus — see the note in `rotating-word-link.tsx`. */}
+          <RotatingWordLink
+            prefix="Explore"
+            items={EXPLORE_TARGETS}
             className={buttonStyles({ size: "lg", className: "w-full sm:w-auto" })}
           >
-            Explore Laptops
             <ArrowRight className="size-4" aria-hidden />
-          </Link>
+          </RotatingWordLink>
           <Link
             href="/compare"
             className={buttonStyles({

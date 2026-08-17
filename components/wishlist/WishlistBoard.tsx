@@ -13,6 +13,7 @@ import { useToast } from "@/components/providers/ToastProvider";
 import { useCompare } from "@/lib/hooks/useCompare";
 import { useWishlist } from "@/lib/hooks/useWishlist";
 import { formatPrice, shortCpu, shortGpu } from "@/lib/utils/formatters";
+import { categoryFor, productHref } from "@/lib/types";
 
 export function WishlistBoard() {
   const wishlist = useWishlist();
@@ -30,12 +31,12 @@ export function WishlistBoard() {
     );
   }
 
-  if (wishlist.laptops.length === 0) {
+  if (wishlist.products.length === 0) {
     return (
       <EmptyState
         icon={<Heart className="size-6" aria-hidden />}
         title="Nothing saved yet"
-        description="Tap the heart on any laptop card and it will show up here, ready to compare later."
+        description="Tap the heart on any product card and it will show up here, ready to compare later."
         action={
           <Link href="/laptops" className={buttonStyles()}>
             Browse laptops
@@ -65,10 +66,10 @@ export function WishlistBoard() {
       </div>
 
       <ul className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-        {wishlist.laptops.map((laptop) => (
+        {wishlist.products.map((laptop) => (
           <li key={laptop.id} className="card-surface flex flex-col gap-4 p-4 sm:flex-row">
             <Link
-              href={`/laptops/${laptop.id}`}
+              href={productHref(laptop)}
               className="relative aspect-4/3 w-full shrink-0 overflow-hidden rounded-xl sm:w-44"
             >
               <Image
@@ -85,13 +86,16 @@ export function WishlistBoard() {
                 {laptop.brand}
               </p>
               <h2 className="mt-1 text-base font-semibold leading-snug">
-                <Link href={`/laptops/${laptop.id}`} className="hover:text-brand-600 dark:hover:text-brand-400">
+                <Link href={productHref(laptop)} className="hover:text-brand-600 dark:hover:text-brand-400">
                   {laptop.name}
                 </Link>
               </h2>
+              {/* `processor`/`gpu`/`ram` exist only on laptops, so the summary is
+                  picked per category rather than assuming a laptop spec sheet. */}
               <p className="mt-1 truncate text-xs text-ink-500 dark:text-ink-400">
-                {shortCpu(laptop.specs.processor)} · {shortGpu(laptop.specs.gpu)} ·{" "}
-                {laptop.specs.ram}GB
+                {laptop.category === "laptop"
+                  ? `${shortCpu(laptop.specs.processor)} · ${shortGpu(laptop.specs.gpu)} · ${laptop.specs.ram}GB`
+                  : categoryFor(laptop).label}
               </p>
 
               <div className="mt-2 flex flex-wrap items-center gap-2">
@@ -105,7 +109,7 @@ export function WishlistBoard() {
 
               <div className="mt-auto flex flex-wrap gap-2 pt-3">
                 <Link
-                  href={`/laptops/${laptop.id}`}
+                  href={productHref(laptop)}
                   className={buttonStyles({ size: "sm" })}
                 >
                   View details

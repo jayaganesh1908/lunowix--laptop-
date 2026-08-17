@@ -173,14 +173,12 @@
  */
 :root {
   --card-glow: 255 125 41; /* brand-500, light — #FF7D29 */
-  /* Raised from 0.16 when the page token deepened to #F5F1DE. In light mode the
-     bloom DARKENS its ground rather than lighting it, so a deeper page gives the
-     same orange less room to register: at 0.16 the peak fell from 5.7 to 5.1 L*
-     below the page. 0.24 restores it and a little more, at 7.6 L*. It stays well
-     under dark's 17.0 on purpose — a light theme carrying a dark theme's glow
-     reads as a rendering fault, not as atmosphere. */
-  --card-glow-strength: 0.24;
-  --card-glow-hover: 0.4;
+  /* In light mode the bloom DARKENS its ground rather than lighting it, so a
+     deeper page gives the same orange less room to register. Light therefore
+     needs a lower number than dark for comparable presence, not the same one —
+     pushed here for a hotter glow while staying under dark's reading. */
+  --card-glow-strength: 0.4;
+  --card-glow-hover: 0.65;
   /*
    * The crisp line around a hovered card, as opposed to the soft bloom behind
    * it. Width and strength are deliberately SEPARATE knobs: widening reads as
@@ -190,14 +188,14 @@
    * outlined.
    */
   --card-ring-width: 3px;
-  --card-ring-hover: 0.35;
+  --card-ring-hover: 0.8;
 
   --card-shadow:
-    0 0 24px -8px rgb(var(--card-glow) / var(--card-glow-strength)),
+    0 0 32px -4px rgb(var(--card-glow) / var(--card-glow-strength)),
     var(--shadow-soft);
   --card-shadow-hover:
     0 0 0 var(--card-ring-width) rgb(var(--card-glow) / var(--card-ring-hover)),
-    0 0 32px -10px rgb(var(--card-glow) / var(--card-glow-hover)),
+    0 0 44px -6px rgb(var(--card-glow) / var(--card-glow-hover)),
     var(--shadow-lift);
 }
 
@@ -211,22 +209,26 @@
 
   /* The deeper the card got, the more headroom the bloom has before it washes
      anything out — so dark carries roughly double the light-mode strength. */
-  --card-glow: 250 125 9; /* brand-500, dark — #FA7D09 */
-  --card-glow-strength: 0.32;
-  --card-glow-hover: 0.6;
-  /* Carries slightly more alpha than light mode only because it sits on a
-     near-black card rather than white — same apparent weight, not a hotter
-     line. Width is inherited from `:root`; both themes frame at the same
-     thickness. */
-  --card-ring-hover: 0.45;
+  /* `brand-400` (#FF9E45), not the palette's #FA7D09. The bloom sits on a
+     near-black card, where a lighter orange reads as light being emitted rather
+     than as paint; #FA7D09 at high alpha goes dense and muddy instead of hot.
+     The ring reads the same variable, so the stroke brightens with it. */
+  --card-glow: 255 158 69;
+  --card-glow-strength: 0.55;
+  --card-glow-hover: 0.85;
+  /* Near-opaque. The resting border is `white/12` on a near-black card, so the
+     hover stroke has to overpower it outright to read as a colour change rather
+     than a warming. Width is inherited from `:root`; both themes frame at the
+     same thickness. */
+  --card-ring-hover: 0.95;
 
   --card-shadow:
-    0 0 26px -6px rgb(var(--card-glow) / var(--card-glow-strength)),
+    0 0 34px -2px rgb(var(--card-glow) / var(--card-glow-strength)),
     0 1px 2px rgba(0, 0, 0, 0.5),
     0 18px 44px -22px rgba(0, 0, 0, 0.9);
   --card-shadow-hover:
     0 0 0 var(--card-ring-width) rgb(var(--card-glow) / var(--card-ring-hover)),
-    0 0 40px -8px rgb(var(--card-glow) / var(--card-glow-hover)),
+    0 0 56px -4px rgb(var(--card-glow) / var(--card-glow-hover)),
     0 18px 44px -22px rgba(0, 0, 0, 0.9);
 
   /*
@@ -377,19 +379,19 @@
   }
 
   /*
-   * Neon bloom for an SVG stroke — `box-shadow` follows the element's box, so
+   * A tight lift on an SVG stroke — `box-shadow` follows the element's box, so
    * it cannot trace a drawn path; `drop-shadow` follows the rendered alpha and
-   * can.
+   * can. `currentColor`, so it always matches the stroke with no second colour
+   * to keep in sync.
    *
-   * Two passes on purpose: the tight one keeps the line's own edge crisp, the
-   * wide one supplies the halo. A single wide shadow just makes the stroke
-   * look out of focus.
-   *
-   * `currentColor` throughout, so the glow always matches whatever colour the
-   * stroke is set to and picks up its alpha — no second colour to keep in sync.
+   * ONE tight pass, not a wide halo. This carried a second 13px pass, and a
+   * wide bloom spreads colour outward across the background instead of raising
+   * the line's own luminance — the line reads hazier, not brighter, and the
+   * effect fights any attempt to actually brighten it. Brightness belongs to
+   * the stroke colour and alpha; this only keeps the edge from looking flat.
    */
   .glow-stroke {
-    filter: drop-shadow(0 0 4px currentColor) drop-shadow(0 0 13px currentColor);
+    filter: drop-shadow(0 0 3px currentColor);
   }
 
   .text-gradient-brand {

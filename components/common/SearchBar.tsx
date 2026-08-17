@@ -5,7 +5,10 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Search, X } from "lucide-react";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
-import { laptops, searchLaptops } from "@/lib/data/laptops";
+/* Cross-category: the box sits in the header on every route, so a
+   laptop-only haystack made phones and headphones unfindable site-wide. */
+import { searchProducts } from "@/lib/data/products";
+import { productHref } from "@/lib/types";
 import { useDebouncedValue } from "@/lib/hooks/useDebouncedValue";
 import { formatPrice, shortGpu } from "@/lib/utils/formatters";
 import { cn } from "@/lib/utils/cn";
@@ -25,7 +28,7 @@ export interface SearchBarProps {
 }
 
 export function SearchBar({
-  placeholder = "Search laptops, GPUs, games or software…",
+  placeholder = "Search laptops, phones, headphones, games or software…",
   defaultValue = "",
   autoFocus = false,
   size = "sm",
@@ -49,7 +52,7 @@ export function SearchBar({
 
   const suggestions = useMemo(() => {
     if (filterMode || debounced.trim().length < 2) return [];
-    return searchLaptops(debounced, laptops).slice(0, 6);
+    return searchProducts(debounced).slice(0, 6);
   }, [debounced, filterMode]);
 
   // Close the popover on an outside click.
@@ -71,7 +74,7 @@ export function SearchBar({
   const submit = () => {
     if (filterMode) return;
     if (activeIndex >= 0 && suggestions[activeIndex]) {
-      go(`/laptops/${suggestions[activeIndex].id}`);
+      go(productHref(suggestions[activeIndex]));
       return;
     }
     if (value.trim()) go(`/search?q=${encodeURIComponent(value.trim())}`);
@@ -115,7 +118,7 @@ export function SearchBar({
           aria-expanded={showList}
           aria-controls={listboxId}
           aria-autocomplete="list"
-          aria-label="Search laptops"
+          aria-label="Search products"
           autoFocus={autoFocus}
           value={value}
           placeholder={placeholder}
@@ -163,7 +166,7 @@ export function SearchBar({
                 <button
                   type="button"
                   onMouseEnter={() => setActiveIndex(index)}
-                  onClick={() => go(`/laptops/${laptop.id}`)}
+                  onClick={() => go(productHref(laptop))}
                   className={cn(
                     "flex w-full items-center gap-3 rounded-xl px-2.5 py-2 text-left transition",
                     index === activeIndex

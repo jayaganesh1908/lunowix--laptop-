@@ -93,3 +93,16 @@ export const featuredAcrossCategories: Product[] = (
 export const trendingProducts: Product[] = [...allProducts]
   .sort((a, b) => b.views - a.views)
   .slice(0, 8);
+
+/**
+ * Products in a price band, across every catalogue.
+ *
+ * `laptopsInBand` in `lib/data/laptops.ts` answers the same question for one
+ * category. The home page's budget cards used it, so a band that held four
+ * laptops, six phones and three pairs of headphones advertised "4 laptops".
+ */
+export function productsInBand(band: { min: number; max: number }): Product[] {
+  return allProducts.filter(
+    (product) => product.price >= band.min && product.price < band.max,
+  );
+}

@@ -1042,6 +1042,12 @@ function buildLaptop(seed: LaptopSeed): Laptop {
 
   return {
     id: seed.id,
+    /* Phones and headphones have always stamped this; laptops never did, so
+       every cross-category helper that switches on `category` — `productHref`,
+       `categoryFor`, the compare gate — silently got `undefined` for a laptop.
+       It is also the source of the duplicate-`Laptop` type errors, since
+       `lib/types` declares the field and this builder omitted it. */
+    category: "laptop",
     name: seed.name,
     brand: seed.brand,
     price: seed.price,

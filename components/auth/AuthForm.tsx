@@ -13,6 +13,7 @@ import {
   User,
 } from "lucide-react";
 import { Button } from "@/components/common/Button";
+import { useCursorEdge } from "@/components/ui/login-1";
 import { OAuthButtons } from "./OAuthButtons";
 import {
   signInWithMagicLink,
@@ -230,6 +231,11 @@ function Field({
   action?: React.ReactNode;
   children: React.ReactNode;
 }) {
+  // Tracked on the wrapper rather than the input so the edge keeps following
+  // the cursor while it is over the leading icon or the reveal button, which
+  // sit above the input and would otherwise break the hover.
+  const { handlers, edges } = useCursorEdge();
+
   return (
     <div>
       <div className="mb-1.5 flex items-baseline justify-between gap-3">
@@ -238,11 +244,12 @@ function Field({
         </label>
         {action}
       </div>
-      <div className="relative">
+      <div className="relative" {...handlers}>
         <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-400">
           {icon}
         </span>
         {children}
+        {edges}
       </div>
     </div>
   );

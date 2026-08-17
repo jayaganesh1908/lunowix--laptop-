@@ -3,11 +3,17 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { Search } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
-import { LaptopGrid } from "@/components/laptops/LaptopGrid";
+/* `LaptopGrid` renders `LaptopCard`, which is typed to `Laptop`. Results
+   now span every category, so the generic card is the right one. */
+import { ProductCard } from "@/components/products";
+import { EmptyState } from "@/components/common/EmptyState";
+import { motion } from "framer-motion";
+import { staggerFast } from "@/lib/utils/animations";
+import { SearchX } from "lucide-react";
 import { SearchBar } from "@/components/common/SearchBar";
 import { SortDropdown } from "@/components/laptops/SortDropdown";
 import { Badge } from "@/components/common/Badge";
-import { laptops, searchLaptops, sortLaptops } from "@/lib/data/laptops";
+import { searchProducts, sortProducts } from "@/lib/data/products";
 import type { SortOption } from "@/lib/types/laptop";
 
 /** Zero-result fallbacks — the terms people search most often. */
@@ -44,7 +50,7 @@ export function SearchResults() {
 
   const results = useMemo(() => {
     if (!query.trim()) return [];
-    return sortLaptops(searchLaptops(query, laptops), sort);
+    return sortProducts(searchProducts(query), sort);
   }, [query, sort]);
 
   return (
@@ -72,25 +78,38 @@ export function SearchResults() {
               “{query.trim()}”
             </span>
           </p>
-          <LaptopGrid
-            laptops={results}
-            emptyTitle={`Nothing matches “${query.trim()}”`}
-            emptyDescription="Search covers laptop names, brands, processors, graphics, supported games and software. Try one of the terms below."
-            emptyAction={
-              <div className="flex flex-wrap justify-center gap-2">
-                {SUGGESTED_TERMS.map((term) => (
-                  <button
-                    key={term}
-                    type="button"
-                    onClick={() => onQueryChange(term)}
-                    className="rounded-full border border-ink-200 px-3 py-1.5 text-xs font-semibold transition hover:border-brand-400 hover:text-brand-600 dark:border-white/15"
-                  >
-                    {term}
-                  </button>
-                ))}
-              </div>
-            }
-          />
+          {results.length === 0 ? (
+            <EmptyState
+              icon={<SearchX className="size-6" aria-hidden />}
+              title={`Nothing matches “${query.trim()}”`}
+              description="Search covers laptops, phones and headphones — names, brands, specs, supported games and software. Try one of the terms below."
+              action={
+                <div className="flex flex-wrap justify-center gap-2">
+                  {SUGGESTED_TERMS.map((term) => (
+                    <button
+                      key={term}
+                      type="button"
+                      onClick={() => onQueryChange(term)}
+                      className="rounded-full border border-ink-200 px-3 py-1.5 text-xs font-semibold transition hover:border-brand-400 hover:text-brand-600 dark:border-white/15"
+                    >
+                      {term}
+                    </button>
+                  ))}
+                </div>
+              }
+            />
+          ) : (
+            <motion.div
+              variants={staggerFast}
+              initial="hidden"
+              animate="visible"
+              className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4"
+            >
+              {results.map((product, index) => (
+                <ProductCard key={product.id} product={product} priority={index < 3} />
+              ))}
+            </motion.div>
+          )}
         </>
       ) : (
         <div className="card-surface flex flex-col items-center gap-5 px-6 py-16 text-center">

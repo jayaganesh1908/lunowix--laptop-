@@ -1,5 +1,6 @@
 import { ShieldAlert, ShieldCheck } from "lucide-react";
 import { Logo } from "@/components/common/Logo";
+import { AuthSplitCard } from "@/components/ui/login-1";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 
 export default function AuthLayout({
@@ -13,12 +14,15 @@ export default function AuthLayout({
         <div className="absolute left-1/2 top-[-12rem] size-[32rem] -translate-x-1/2 rounded-full bg-brand-500/15 blur-[110px]" />
       </div>
 
-      <div className="mx-auto flex w-full max-w-md flex-col px-4 py-14 sm:px-6 sm:py-20">
+      {/* Stays narrow until `lg`, where the split card's image half appears —
+          below that the image is hidden, and a form alone at 56rem is far too
+          wide to read. */}
+      <div className="mx-auto flex w-full max-w-md flex-col px-4 py-14 sm:px-6 sm:py-20 lg:max-w-4xl">
         <div className="flex justify-center">
           <Logo />
         </div>
 
-        <div className="card-surface mt-8 p-6 sm:p-8">{children}</div>
+        <AuthSplitCard className="mt-8">{children}</AuthSplitCard>
 
         {isSupabaseConfigured ? (
           <p className="mt-6 flex items-start gap-2 px-1 text-xs leading-relaxed text-ink-500 dark:text-ink-400">
