@@ -24,7 +24,7 @@ import { GamesSupported } from "@/components/details/GamesSupported";
 import { SoftwareCompatibility } from "@/components/details/SoftwareCompatibility";
 import { LaptopActions } from "@/components/details/LaptopActions";
 import { relatedLaptops } from "@/lib/data/laptops";
-import { getLaptop, getLaptops } from "@/lib/db/catalogue";
+import { getLaptopById, laptops } from "@/lib/data/laptops";
 import {
   discountPercent,
   formatBattery,
@@ -47,7 +47,7 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
   const { id } = await params;
-  const laptop = await getLaptop(id);
+  const laptop = getLaptopById(id);
 
   if (!laptop) return { title: "Laptop not found" };
 
@@ -69,12 +69,12 @@ export default async function LaptopDetailsPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const laptop = await getLaptop(id);
+  const laptop = getLaptopById(id);
 
   if (!laptop) notFound();
 
   const discount = discountPercent(laptop.price, laptop.mrp);
-  const related = relatedLaptops(laptop, 4, await getLaptops());
+  const related = relatedLaptops(laptop, 4, laptops);
 
   const highlights = [
     { icon: Cpu, label: "Processor", value: shortCpu(laptop.specs.processor) },

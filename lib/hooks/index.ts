@@ -11,7 +11,7 @@ import {
   useSyncExternalStore,
 } from "react";
 import { getProductById } from "@/lib/data/products";
-import { type Laptop, type ProfileRow } from "@/lib/types";
+import type { Laptop } from "@/lib/types";
 
 /**
  * Every hook instance for a given key shares one subscriber set, so a wishlist
@@ -175,41 +175,6 @@ export function useTheme() {
     throw new Error("useTheme must be used inside <ThemeProvider>");
   }
   return context;
-}
-
-export interface SessionAccount {
-  id: string;
-  email: string;
-  name: string;
-  avatarUrl: string | null;
-  role: ProfileRow["role"];
-  joinedAt: string;
-}
-
-export interface SessionContextValue {
-  account: SessionAccount | null;
-  isAuthenticated: boolean;
-  isAdmin: boolean;
-  /** False until the browser client has confirmed the session. */
-  hydrated: boolean;
-}
-
-export const SessionContext = createContext<SessionContextValue>({
-  account: null,
-  isAuthenticated: false,
-  isAdmin: false,
-  hydrated: false,
-});
-
-/**
- * Read-only view of the signed-in user.
- *
- * Sign-in and sign-out are server actions in `app/auth/actions.ts` — they have
- * to run on the server so the session cookie is httpOnly, which means it cannot
- * be written from here.
- */
-export function useAuth() {
-  return useContext(SessionContext);
 }
 
 /**

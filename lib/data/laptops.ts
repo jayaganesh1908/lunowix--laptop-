@@ -5,11 +5,13 @@ import type {
   BudgetBand,
   Laptop,
   LaptopFilters,
+  LaptopSpecs,
+  Model3DParams,
   OperatingSystem,
   PerformanceScores,
   Review,
   SortOption,
-} from "@/lib/types/laptop";
+} from "@/lib/types";
 import type { GameBenchmark, GamePerformanceTier, GraphicsPreset } from "@/lib/types/game";
 import type { CompatibilityStatus, SoftwareCompatibilityMap } from "@/lib/types/software";
 
@@ -1019,6 +1021,45 @@ const seeds: LaptopSeed[] = [
 /* Assembly                                                                   */
 /* -------------------------------------------------------------------------- */
 
+const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
+const round10 = (value: number) => Math.round(value * 10) / 10;
+
+/**
+ * 3D viewer parameters for a laptop.
+ *
+ * Phones and headphones each shipped one of these; laptops never did, which is
+ * why `Laptop` declared a required `model3d` that the builder never produced.
+ *
+ * `bulk` is weight-per-span rather than raw weight — a 2.4kg 15-inch machine
+ * and a 2.4kg 17-inch one are not equally chunky, and the ratio is what the eye
+ * reads as heft.
+ */
+export function deriveLaptopModel(specs: LaptopSpecs): Model3DParams {
+  // Width of a 16:10 panel from its diagonal, in cm.
+  const span = round10(specs.display.size * 2.15);
+
+  // ~1.1 kg per 30cm of span is featherweight; ~2.6 is a desktop replacement.
+  const bulk = clamp01((specs.weight / (span / 30) - 1.1) / 1.5);
+
+  const panel = /oled/i.test(specs.display.panel)
+    ? 0.92
+    : /ips/i.test(specs.display.panel)
+      ? 0.55
+      : 0.4;
+  // Refresh stands in for panel tier; LaptopSpecs carries no brightness figure.
+  const screenGlow = clamp01(
+    panel * (0.7 + (Math.min(specs.display.refreshRate, 240) / 240) * 0.3),
+  );
+
+  // Chassis material is prose in `keyboard`/`ports` rather than its own field,
+  // so the finish keys off the OS family: Apple ships aluminium, Windows
+  // machines average darker.
+  const bodyColor = specs.os === "macOS" ? "#C7C9CE" : "#2E3238";
+  const accentColor = specs.gpuVram > 0 ? "#5B6672" : "#8A9099";
+
+  return { archetype: "laptop", span, bulk, screenGlow, bodyColor, accentColor };
+}
+
 function buildLaptop(seed: LaptopSeed): Laptop {
   const cpu = CPU_SCORES[seed.cpu];
   const gpu = GPU_SCORES[seed.gpu];
@@ -1040,6 +1081,37 @@ function buildLaptop(seed: LaptopSeed): Laptop {
 
   const images = [1, 2, 3].map((n) => `/laptop-images/${seed.id}-${n}.svg`);
 
+  const specs: LaptopSpecs = {
+    processor: seed.cpu,
+    cores: cpu.cores,
+    ram: seed.ram,
+    ramType: seed.ramType,
+    storage: seed.storage,
+    storageType: seed.storageType ?? "NVMe PCIe Gen4 SSD",
+    gpu: seed.gpu,
+    gpuVram: gpu.vram,
+    display: {
+      size: seed.display.size,
+      resolution: seed.display.resolution,
+      refreshRate: seed.display.refreshRate,
+      panel: seed.display.panel,
+      touch,
+    },
+    battery: seed.battery,
+    weight: seed.weight,
+    ports: seed.ports ?? (discrete ? GAMING_PORTS : THIN_PORTS),
+    keyboard:
+      seed.keyboard ??
+      (discrete
+        ? "Backlit chiclet, 4-zone RGB, 1.5mm travel"
+        : "Backlit chiclet, 1.4mm travel"),
+    wifi: seed.wifi ?? (seed.releaseYear >= 2024 ? "Wi-Fi 6E (802.11ax)" : "Wi-Fi 6 (802.11ax)"),
+    bluetooth: seed.bluetooth ?? "Bluetooth 5.3",
+    webcam: seed.webcam ?? "1080p FHD with privacy shutter",
+    warranty: seed.warranty ?? "1 Year Onsite Warranty",
+    os: seed.os ?? "Windows",
+  };
+
   return {
     id: seed.id,
     /* Phones and headphones have always stamped this; laptops never did, so
@@ -1048,41 +1120,13 @@ function buildLaptop(seed: LaptopSeed): Laptop {
        It is also the source of the duplicate-`Laptop` type errors, since
        `lib/types` declares the field and this builder omitted it. */
     category: "laptop",
+    model3d: deriveLaptopModel(specs),
     name: seed.name,
     brand: seed.brand,
     price: seed.price,
     mrp: seed.mrp,
     summary: seed.summary,
-    specs: {
-      processor: seed.cpu,
-      cores: cpu.cores,
-      ram: seed.ram,
-      ramType: seed.ramType,
-      storage: seed.storage,
-      storageType: seed.storageType ?? "NVMe PCIe Gen4 SSD",
-      gpu: seed.gpu,
-      gpuVram: gpu.vram,
-      display: {
-        size: seed.display.size,
-        resolution: seed.display.resolution,
-        refreshRate: seed.display.refreshRate,
-        panel: seed.display.panel,
-        touch,
-      },
-      battery: seed.battery,
-      weight: seed.weight,
-      ports: seed.ports ?? (discrete ? GAMING_PORTS : THIN_PORTS),
-      keyboard:
-        seed.keyboard ??
-        (discrete
-          ? "Backlit chiclet, 4-zone RGB, 1.5mm travel"
-          : "Backlit chiclet, 1.4mm travel"),
-      wifi: seed.wifi ?? (seed.releaseYear >= 2024 ? "Wi-Fi 6E (802.11ax)" : "Wi-Fi 6 (802.11ax)"),
-      bluetooth: seed.bluetooth ?? "Bluetooth 5.3",
-      webcam: seed.webcam ?? "1080p FHD with privacy shutter",
-      warranty: seed.warranty ?? "1 Year Onsite Warranty",
-      os: seed.os ?? "Windows",
-    },
+    specs,
     performance,
     games: buildGameBenchmarks(gpu.score, cpu.score),
     software: buildSoftwareCompatibility(cpu.score, gpu.score, seed.ram),

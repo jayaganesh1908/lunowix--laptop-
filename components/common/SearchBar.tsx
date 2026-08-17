@@ -8,7 +8,7 @@ import { useEffect, useId, useMemo, useRef, useState } from "react";
 /* Cross-category: the box sits in the header on every route, so a
    laptop-only haystack made phones and headphones unfindable site-wide. */
 import { searchProducts } from "@/lib/data/products";
-import { productHref } from "@/lib/types";
+import { categoryFor, productHref } from "@/lib/types";
 import { useDebouncedValue } from "@/lib/hooks/useDebouncedValue";
 import { formatPrice, shortGpu } from "@/lib/utils/formatters";
 import { cn } from "@/lib/utils/cn";
@@ -186,8 +186,11 @@ export function SearchBar({
                       {laptop.name}
                     </span>
                     <span className="block truncate text-xs text-ink-500 dark:text-ink-400">
-                      {shortGpu(laptop.specs.gpu)} · {laptop.specs.ram}GB ·{" "}
-                      {laptop.specs.display.refreshRate}Hz
+                      {/* `gpu`/`ram`/`display` exist only on laptops; results
+                          now span every category. */}
+                      {laptop.category === "laptop"
+                        ? `${shortGpu(laptop.specs.gpu)} · ${laptop.specs.ram}GB · ${laptop.specs.display.refreshRate}Hz`
+                        : categoryFor(laptop).label}
                     </span>
                   </span>
                   <span className="shrink-0 font-mono text-sm font-semibold tabular-nums text-brand-700 dark:text-brand-400">

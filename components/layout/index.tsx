@@ -7,17 +7,15 @@ import {
   GitCompareArrows,
   Heart,
   LayoutDashboard,
-  LogIn,
   Menu,
   Search,
-  User,
   X,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Logo, buttonStyles } from "@/components/common/Display";
+import { Logo } from "@/components/common/Display";
 import { SearchBar, ThemeToggle } from "@/components/common";
 import { Particles } from "@/components/ui/particles";
-import { useAuth, useCompare, useWishlist } from "@/lib/hooks";
+import { useCompare, useWishlist } from "@/lib/hooks";
 import { categories } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -79,7 +77,6 @@ export function Navbar() {
 
   const wishlist = useWishlist();
   const compare = useCompare();
-  const { account, hydrated } = useAuth();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -192,24 +189,6 @@ export function Navbar() {
 
             <ThemeToggle />
 
-            {hydrated && account ? (
-              <Link
-                href="/profile"
-                className={buttonStyles({ variant: "outline", size: "md", className: "hidden sm:inline-flex" })}
-              >
-                <User className="size-4" aria-hidden />
-                {account.name.split(" ")[0]}
-              </Link>
-            ) : (
-              <Link
-                href="/auth/login"
-                className={buttonStyles({ variant: "primary", size: "md", className: "hidden sm:inline-flex" })}
-              >
-                <LogIn className="size-4" aria-hidden />
-                Login
-              </Link>
-            )}
-
             <button
               type="button"
               onClick={() => setOpen(true)}
@@ -302,23 +281,6 @@ export function Navbar() {
                   </Link>
                 </li>
               </ul>
-
-              <div className="border-t border-ink-900/5 p-4 dark:border-white/10">
-                {hydrated && account ? (
-                  <Link
-                    href="/profile"
-                    className={buttonStyles({ variant: "outline", className: "w-full" })}
-                  >
-                    <User className="size-4" aria-hidden />
-                    {account.name}
-                  </Link>
-                ) : (
-                  <Link href="/auth/login" className={buttonStyles({ className: "w-full" })}>
-                    <LogIn className="size-4" aria-hidden />
-                    Login / Register
-                  </Link>
-                )}
-              </div>
             </motion.div>
           </div>
         ) : null}

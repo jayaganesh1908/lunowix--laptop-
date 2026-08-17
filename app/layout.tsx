@@ -5,8 +5,6 @@ import { Footer } from "@/components/layout/Footer";
 import { BackgroundParticles } from "@/components/layout/BackgroundParticles";
 import { AppProviders } from "@/components/providers/AppProviders";
 import { themeInitScript } from "@/components/providers/ThemeProvider";
-import { getCurrentProfile } from "@/lib/supabase/server";
-import type { SessionAccount } from "@/lib/hooks/useAuth";
 import "@/styles/globals.css";
 
 const geistSans = Geist({
@@ -65,25 +63,11 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-export default async function RootLayout({
+/* No session read here any more. That call was the only thing forcing every
+   route to be dynamic — without it the shell can be statically rendered. */
+export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  // Reading the session cookie here makes every route dynamic. That is the
-  // trade for a navbar that knows who you are on first paint; the alternative
-  // is a signed-out flash on every navigation.
-  const profile = await getCurrentProfile();
-
-  const initialAccount: SessionAccount | null = profile
-    ? {
-        id: profile.id,
-        email: profile.email,
-        name: profile.full_name ?? profile.email.split("@")[0],
-        avatarUrl: profile.avatar_url,
-        role: profile.role,
-        joinedAt: profile.created_at,
-      }
-    : null;
-
   return (
     // The font variables sit on <html> so `:root`-scoped theme tokens can see them.
     <html
@@ -96,7 +80,7 @@ export default async function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
       <body>
-        <AppProviders initialAccount={initialAccount}>
+        <AppProviders>
           <BackgroundParticles />
           <div className="flex min-h-dvh flex-col">
             <Navbar />

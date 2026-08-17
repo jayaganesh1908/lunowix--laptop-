@@ -3,7 +3,10 @@ import { Suspense } from "react";
 import { LaptopsBrowser } from "@/components/laptops/LaptopsBrowser";
 import { Breadcrumb } from "@/components/common/Breadcrumb";
 import { LaptopGridSkeleton } from "@/components/common/LoadingSkeleton";
-import { getLaptops } from "@/lib/db/catalogue";
+/* Static catalogue directly. `lib/db/catalogue` wrapped Supabase and fell
+   back to exactly this list whenever credentials were absent — which was
+   always, in practice. */
+import { laptops } from "@/lib/data/laptops";
 
 export const metadata: Metadata = {
   title: "All laptops",
@@ -13,7 +16,7 @@ export const metadata: Metadata = {
 };
 
 export default async function LaptopsPage() {
-  const catalogue = await getLaptops();
+  const catalogue = laptops;
 
   return (
     <>

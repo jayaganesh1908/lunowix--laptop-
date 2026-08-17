@@ -31,8 +31,6 @@ const COLUMNS = [
       { href: "/about", label: "About Lunowix" },
       { href: "/contact", label: "Contact us" },
       { href: "/admin", label: "Admin dashboard" },
-      { href: "/auth/login", label: "Sign in" },
-      { href: "/auth/register", label: "Create account" },
     ],
   },
 ];
