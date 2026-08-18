@@ -104,6 +104,23 @@ return to it.
 Without a key, sign-in works normally and the mail is skipped with a console
 warning — it is never allowed to fail a login.
 
+## 8b. Contact form
+
+The form at `/contact` posts to `/api/contact`, which emails the message to
+your team through the same Resend account. Two variables:
+
+| Key | Purpose |
+| --- | --- |
+| `RESEND_API_KEY` | Shared with the welcome email above. |
+| `CONTACT_TO_EMAIL` | Where messages are delivered, e.g. `hello@yourdomain.com`. |
+
+The sender's address goes on `replyTo`, never on `from` — a visitor-supplied
+`from` is what gets a domain flagged for spoofing.
+
+**With either variable missing the form does not pretend.** The endpoint
+returns 501 and the page says nothing was sent, rather than showing a "we will
+reply within two working days" message that no one will act on.
+
 ## 9. Make yourself an admin
 
 `/admin` is behind a login, and admin-only writes are enforced by RLS. After

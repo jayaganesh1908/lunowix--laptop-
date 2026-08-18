@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
+import { ChromeSlot } from "@/components/layout/ChromeSlot";
 import { BackgroundParticles } from "@/components/layout/BackgroundParticles";
 import { AppProviders } from "@/components/providers/AppProviders";
 import { themeInitScript } from "@/components/providers/ThemeProvider";
@@ -87,7 +88,11 @@ export default function RootLayout({
             <main id="main" className="flex-1">
               {children}
             </main>
-            <Footer />
+            {/* Auth routes run edge to edge; the marketing footer would put
+                300px of scroll under a page meant to fill the viewport. */}
+            <ChromeSlot hiddenOn={["/auth"]}>
+              <Footer />
+            </ChromeSlot>
           </div>
         </AppProviders>
       </body>

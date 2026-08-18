@@ -46,10 +46,31 @@ function ChartCard({
   className?: string;
 }) {
   return (
-    <section className={cn("card-surface p-5", className)}>
+    /*
+     * `min-w-0` on the card, and on the box the chart measures.
+     *
+     * Recharts' `ResponsiveContainer` reads its parent's width and renders to
+     * it. A grid item defaults to `min-width: auto`, which refuses to shrink
+     * below its contents — so the container measured 0, the chart fell back to
+     * a stale width, and the widest of the three pushed the whole admin page
+     * sideways: 20px of horizontal scroll at 320 and 96px at 1024, on a page
+     * with no other layout problem. `min-w-0` lets the track shrink, which is
+     * the only thing a percentage-width chart needs to behave.
+     */
+    <section className={cn("card-surface min-w-0 p-5", className)}>
       <h3 className="text-sm font-bold uppercase tracking-widest">{title}</h3>
       <p className="mt-1 text-xs text-ink-500 dark:text-ink-400">{description}</p>
-      <div className="mt-5 h-64 w-full">{children}</div>
+      {/*
+        `overflow-hidden` is load-bearing, not tidiness.
+
+        Recharts writes its measured width back onto its own wrapper as an
+        inline `width: 272px`. That inline width then counts toward the card's
+        min-content, which inflates the grid track, which keeps the card wide —
+        so the chart measures wide again and never shrinks back. Clipping here
+        stops the child's width from feeding the parent's, the card sizes to the
+        track, and the resize observer re-measures into the real space.
+      */}
+      <div className="mt-5 h-64 w-full min-w-0 overflow-hidden">{children}</div>
     </section>
   );
 }

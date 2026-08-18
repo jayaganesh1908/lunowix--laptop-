@@ -7,6 +7,7 @@ import {
   GitCompareArrows,
   Heart,
   LayoutDashboard,
+  LogIn,
   Menu,
   Search,
   X,
@@ -15,6 +16,8 @@ import { useEffect, useState } from "react";
 import { Logo } from "@/components/common/Logo";
 import { SearchBar } from "@/components/common/SearchBar";
 import { ThemeToggle } from "@/components/common/ThemeToggle";
+import { buttonStyles } from "@/components/common/buttonStyles";
+import { LaptopLoginLink } from "@/components/ui/laptop-login-button";
 import { useCompare } from "@/lib/hooks/useCompare";
 import { useWishlist } from "@/lib/hooks/useWishlist";
 import { categories } from "@/lib/types";
@@ -107,7 +110,9 @@ export function Navbar() {
                     href={link.href}
                     aria-current={active ? "page" : undefined}
                     className={cn(
-                      "relative rounded-lg px-3 py-2 text-sm font-medium transition",
+                      /* `px-2` through the crowded `lg` band, a little wider
+                         once `xl` brings the search bar and the room for it. */
+                      "relative rounded-lg px-2 py-2 text-sm font-medium transition xl:px-2.5",
                       active
                         ? "text-brand-700 dark:text-brand-400"
                         : "text-ink-600 hover:text-ink-900 dark:text-ink-300 dark:hover:text-white",
@@ -144,7 +149,11 @@ export function Navbar() {
             <Link
               href="/wishlist"
               aria-label={`Wishlist, ${wishlist.count} ${wishlist.count === 1 ? "item" : "items"}`}
-              className="relative hidden size-10 items-center justify-center rounded-xl border border-ink-200 text-ink-700 transition hover:border-brand-400 hover:text-brand-600 sm:inline-flex dark:border-white/15 dark:text-ink-200"
+              /* Hidden through `lg`: the link list is visible there and already
+                 carries "Wishlist", so the icon is a second control for the same
+                 destination — and it is exactly where the bar runs out of room.
+                 It returns at `xl`, where there is space and the badge earns it. */
+              className="relative hidden size-10 items-center justify-center rounded-xl border border-ink-200 text-ink-700 transition hover:border-brand-400 hover:text-brand-600 sm:inline-flex lg:hidden xl:inline-flex dark:border-white/15 dark:text-ink-200"
             >
               <Heart className="size-[18px]" aria-hidden />
               {wishlist.hydrated && wishlist.count > 0 ? (
@@ -155,7 +164,8 @@ export function Navbar() {
             <Link
               href="/compare"
               aria-label={`Compare, ${compare.count} selected`}
-              className="relative hidden size-10 items-center justify-center rounded-xl border border-ink-200 text-ink-700 transition hover:border-brand-400 hover:text-brand-600 sm:inline-flex dark:border-white/15 dark:text-ink-200"
+              /* Same as the wishlist icon above. */
+              className="relative hidden size-10 items-center justify-center rounded-xl border border-ink-200 text-ink-700 transition hover:border-brand-400 hover:text-brand-600 sm:inline-flex lg:hidden xl:inline-flex dark:border-white/15 dark:text-ink-200"
             >
               <GitCompareArrows className="size-[18px]" aria-hidden />
               {compare.hydrated && compare.count > 0 ? (
@@ -164,6 +174,15 @@ export function Navbar() {
             </Link>
 
             <ThemeToggle />
+
+            {/* A laptop with the word on its screen, still magnetized — brand
+                particles are pulled into it on hover or focus.
+                `containerClassName` carries the responsive visibility, since
+                the wrapper is what participates in the nav's layout. */}
+            <LaptopLoginLink
+              href="/auth/login"
+              containerClassName="hidden sm:inline-flex"
+            />
 
             <button
               type="button"
@@ -257,6 +276,13 @@ export function Navbar() {
                   </Link>
                 </li>
               </ul>
+
+              <div className="border-t border-ink-900/5 p-4 dark:border-white/10">
+                <Link href="/auth/login" className={buttonStyles({ className: "w-full" })}>
+                  <LogIn className="size-4" aria-hidden />
+                  Login
+                </Link>
+              </div>
             </motion.div>
           </div>
         ) : null}

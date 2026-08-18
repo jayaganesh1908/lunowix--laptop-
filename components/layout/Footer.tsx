@@ -52,7 +52,7 @@ export function Footer() {
   return (
     <footer className="mt-24 border-t border-ink-900/5 bg-ink-900/5 dark:border-white/10 dark:bg-ink-900/40">
       <div className="mx-auto w-full max-w-[1400px] px-4 py-14 sm:px-6 lg:px-8">
-        <div className="grid gap-10 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-4">
           <div className="lg:col-span-1">
             <Logo />
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-ink-600 dark:text-ink-300">

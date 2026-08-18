@@ -50,7 +50,7 @@ export default function ContactPage() {
         </p>
       </header>
 
-      <div className="mt-10 grid gap-8 lg:grid-cols-[1fr_22rem]">
+      <div className="mt-10 grid grid-cols-1 gap-8 lg:grid-cols-[1fr_22rem]">
         <ContactForm />
 
         <aside className="space-y-4">

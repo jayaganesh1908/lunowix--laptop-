@@ -1,8 +1,13 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ProductDetail } from "@/components/products/ProductDetail";
-import { getPhoneById, relatedPhones } from "@/lib/data/phones";
+import { getPhoneById, phones, relatedPhones } from "@/lib/data/phones";
 import { formatPrice } from "@/lib/utils";
+
+/** Pre-rendered at build time — see the note in the laptop detail route. */
+export function generateStaticParams() {
+  return phones.map((phone) => ({ id: phone.id }));
+}
 
 export async function generateMetadata({
   params,

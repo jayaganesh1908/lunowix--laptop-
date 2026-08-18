@@ -42,7 +42,7 @@ export function LaptopGridSkeleton({ count = 8 }: { count?: number }) {
 
 export function DetailsSkeleton() {
   return (
-    <div role="status" aria-label="Loading laptop" className="grid gap-8 lg:grid-cols-2">
+    <div role="status" aria-label="Loading laptop" className="grid grid-cols-1 gap-8 lg:grid-cols-2">
       <Skeleton className="aspect-4/3 w-full rounded-2xl" />
       <div className="space-y-4">
         <Skeleton className="h-4 w-24" />

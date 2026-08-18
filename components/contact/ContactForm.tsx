@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle2, Send } from "lucide-react";
+import { CheckCircle2, MailWarning, Send } from "lucide-react";
 import { useId, useState } from "react";
 import { Button } from "@/components/common/Button";
 import { useToast } from "@/components/providers/ToastProvider";
@@ -62,6 +62,8 @@ export function ContactForm() {
   const [errors, setErrors] = useState<Errors>({});
   const [submitting, setSubmitting] = useState(false);
   const [sent, setSent] = useState(false);
+  /** Reached when the deployment has no mail provider — see `onSubmit`. */
+  const [undeliverable, setUndeliverable] = useState(false);
   const { toast } = useToast();
 
   const update = (key: keyof Fields, value: string) => {
@@ -70,20 +72,68 @@ export function ContactForm() {
     setErrors((current) => ({ ...current, [key]: undefined }));
   };
 
-  const onSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  /*
+   * A real POST, not a timer.
+   *
+   * The three outcomes are kept apart on purpose. Delivered says so. A
+   * deployment without mail credentials (501) says THAT, rather than promising
+   * a reply nobody will send — the honest failure is the whole point of wiring
+   * this up. Anything else is a transient failure the visitor can retry.
+   */
+  const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const found = validate(fields);
     setErrors(found);
     if (Object.keys(found).length > 0) return;
 
     setSubmitting(true);
-    // No mail backend in the demo — simulate the request so states are real.
-    window.setTimeout(() => {
+    try {
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(fields),
+      });
+
+      if (response.ok) {
+        setSent(true);
+        toast("Message sent. We reply within two working days.");
+        return;
+      }
+
+      if (response.status === 501) {
+        setUndeliverable(true);
+        toast("This deployment has no mail set up — nothing was sent.");
+        return;
+      }
+
+      toast("The message could not be sent. Please try again.");
+    } catch {
+      toast("No connection. Check your network and try again.");
+    } finally {
       setSubmitting(false);
-      setSent(true);
-      toast("Message sent. We reply within two working days.");
-    }, 800);
+    }
   };
+
+  if (undeliverable) {
+    return (
+      <div className="card-surface flex flex-col items-center gap-4 px-6 py-16 text-center">
+        <span className="flex size-14 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400">
+          <MailWarning className="size-6" aria-hidden />
+        </span>
+        <div className="max-w-md">
+          <h2 className="text-lg font-semibold tracking-tight">Nothing was sent</h2>
+          <p className="mt-2 text-sm text-ink-600 dark:text-ink-300">
+            This deployment has no mail provider configured, so your message could not
+            be delivered and no one will see it. Set <code>RESEND_API_KEY</code> and{" "}
+            <code>CONTACT_TO_EMAIL</code> to turn this form on.
+          </p>
+        </div>
+        <Button variant="outline" onClick={() => setUndeliverable(false)}>
+          Back to the form
+        </Button>
+      </div>
+    );
+  }
 
   if (sent) {
     return (
@@ -113,7 +163,7 @@ export function ContactForm() {
 
   return (
     <form onSubmit={onSubmit} noValidate className="card-surface space-y-5 p-6 sm:p-8">
-      <div className="grid gap-5 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
         <div>
           <label htmlFor={ids.name} className="mb-1.5 block text-sm font-medium">
             Your name

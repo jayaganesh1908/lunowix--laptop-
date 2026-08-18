@@ -13,6 +13,25 @@ import { type Product, type ProductCategory, type ProductSortOption } from "@/li
 
 export const allProducts: Product[] = [...laptops, ...phones, ...headphones];
 
+/**
+ * When the catalogue's prices were last checked, as `YYYY-MM-DD`.
+ *
+ * Street prices are the whole reason someone opens a comparison site, and a
+ * price with no date behind it is a claim the reader cannot judge — is it from
+ * this week or from last year's sale? Stating the date is cheap and it is the
+ * difference between a figure and an assertion.
+ *
+ * It lives here, once, because these prices were captured as a single snapshot.
+ * A product that gets re-checked on its own can carry `priceCheckedAt` and
+ * override this — see `priceCheckedFor`.
+ */
+export const CATALOGUE_PRICES_CHECKED_AT = "2026-08-18";
+
+/** The date to show beside a product's price. */
+export function priceCheckedFor(product: Product): string {
+  return product.priceCheckedAt ?? CATALOGUE_PRICES_CHECKED_AT;
+}
+
 export const productsById = new Map<string, Product>(
   allProducts.map((product) => [product.id, product]),
 );

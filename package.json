@@ -9,7 +9,9 @@
     "build": "next build --turbopack",
     "start": "next start",
     "lint": "eslint",
-    "seed": "tsx scripts/seed.mjs"
+    "seed": "tsx scripts/seed.mjs",
+    "test": "tsx --test \"lib/**/*.test.ts\"",
+    "test:watch": "tsx --test --watch \"lib/**/*.test.ts\""
   },
   "dependencies": {
     "@react-three/drei": "^10.7.8",

@@ -167,6 +167,10 @@ export function ProductCard({ product, priority = false, className }: ProductCar
     <TiltBox
       variants={fadeUp}
       whileHover={{ y: -6 }}
+      /* Touch has no hover, so the lift never happens on a phone and the card
+         gives no sign it was pressed. A tap scale is the one piece of feedback
+         a finger can actually get. */
+      whileTap={{ scale: 0.985 }}
       transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
       depth={24}
       intensity={12}
@@ -205,7 +209,10 @@ export function ProductCard({ product, priority = false, className }: ProductCar
             aria-pressed={saved}
             aria-label={saved ? `Remove ${product.name} from wishlist` : `Add ${product.name} to wishlist`}
             className={cn(
-              "glass-strong flex size-9 items-center justify-center rounded-xl transition hover:text-brand-600",
+              // 36px is fine for a mouse and small for a thumb. `pointer-coarse`
+              // grows it to 44px on touch without padding out the card on a
+              // desktop, where the hover state already makes it findable.
+              "glass-strong flex size-9 items-center justify-center rounded-xl transition hover:text-brand-600 pointer-coarse:size-11",
               saved ? "text-brand-600 dark:text-brand-400" : "text-ink-600 dark:text-ink-200",
             )}
           >
@@ -224,7 +231,7 @@ export function ProductCard({ product, priority = false, className }: ProductCar
                   : `Add ${product.name} to compare`
               }
               className={cn(
-                "glass-strong flex size-9 items-center justify-center rounded-xl transition hover:text-brand-600",
+                "glass-strong flex size-9 items-center justify-center rounded-xl transition hover:text-brand-600 pointer-coarse:size-11",
                 comparing ? "text-brand-600 dark:text-brand-400" : "text-ink-600 dark:text-ink-200",
               )}
             >

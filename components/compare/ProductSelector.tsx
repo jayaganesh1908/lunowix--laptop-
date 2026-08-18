@@ -4,30 +4,51 @@ import { AnimatePresence, motion } from "framer-motion";
 import Image from "next/image";
 import { Plus, Search, X } from "lucide-react";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
-import { laptops, searchLaptops } from "@/lib/data/laptops";
+import { allProducts, productsIn } from "@/lib/data/products";
 import { useDebouncedValue } from "@/lib/hooks/useDebouncedValue";
-import type { Laptop } from "@/lib/types/laptop";
-import { formatPrice, shortCpu, shortGpu } from "@/lib/utils/formatters";
+import type { Product, ProductCategory } from "@/lib/types";
+import { formatPrice, formatStorage, shortGpu } from "@/lib/utils/formatters";
 import { cn } from "@/lib/utils/cn";
 
-export interface LaptopSelectorProps {
+/*
+ * Was `LaptopSelector`, and searched `lib/data/laptops` directly — which is why
+ * a phone could be added to the compare tray from a product card but never
+ * picked here. It now searches whichever category the comparison is in, and
+ * every category when the tray is still empty.
+ */
+
+/** The one line under a name in the list, in terms that category cares about. */
+function subtitle(product: Product): string {
+  if (product.category === "laptop") {
+    return `${shortGpu(product.specs.gpu)} · ${product.specs.ram}GB`;
+  }
+  if (product.category === "phone") {
+    return `${product.specs.chipset} · ${formatStorage(product.specs.storage)}`;
+  }
+  return `${product.specs.form} · ${product.specs.batteryHours}h`;
+}
+
+export interface ProductSelectorProps {
   label: string;
-  selected: Laptop | null;
+  selected: Product | null;
+  /** Restricts the search once the other slot has fixed the category. */
+  category?: ProductCategory | null;
   /** Ids already used in another slot, hidden from the suggestion list. */
   excludeIds?: string[];
-  onSelect: (laptop: Laptop) => void;
+  onSelect: (product: Product) => void;
   onClear: () => void;
   className?: string;
 }
 
-export function LaptopSelector({
+export function ProductSelector({
   label,
   selected,
+  category = null,
   excludeIds = [],
   onSelect,
   onClear,
   className,
-}: LaptopSelectorProps) {
+}: ProductSelectorProps) {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
@@ -38,9 +59,19 @@ export function LaptopSelector({
   const debounced = useDebouncedValue(query, 300);
 
   const results = useMemo(() => {
-    const pool = laptops.filter((laptop) => !excludeIds.includes(laptop.id));
-    return searchLaptops(debounced, pool).slice(0, 8);
-  }, [debounced, excludeIds]);
+    const pool = (category ? productsIn(category) : allProducts).filter(
+      (product) => !excludeIds.includes(product.id),
+    );
+    const needle = debounced.trim().toLowerCase();
+    if (!needle) return pool.slice(0, 8);
+    return pool
+      .filter((product) =>
+        `${product.name} ${product.brand} ${product.tags.join(" ")}`
+          .toLowerCase()
+          .includes(needle),
+      )
+      .slice(0, 8);
+  }, [debounced, excludeIds, category]);
 
   useEffect(() => {
     const onPointerDown = (event: MouseEvent) => {
@@ -52,8 +83,8 @@ export function LaptopSelector({
 
   useEffect(() => setActiveIndex(-1), [debounced]);
 
-  const choose = (laptop: Laptop) => {
-    onSelect(laptop);
+  const choose = (product: Product) => {
+    onSelect(product);
     setQuery("");
     setOpen(false);
   };
@@ -97,8 +128,7 @@ export function LaptopSelector({
           </p>
           <p className="truncate text-sm font-semibold">{selected.name}</p>
           <p className="truncate text-xs text-ink-500 dark:text-ink-400">
-            {shortCpu(selected.specs.processor)} · {shortGpu(selected.specs.gpu)} ·{" "}
-            {formatPrice(selected.price)}
+            {subtitle(selected)} · {formatPrice(selected.price)}
           </p>
         </div>
         <button
@@ -141,7 +171,7 @@ export function LaptopSelector({
               aria-controls={listboxId}
               aria-autocomplete="list"
               value={query}
-              placeholder="Search by name, brand or GPU…"
+              placeholder="Search by name or brand…"
               onChange={(event) => {
                 setQuery(event.target.value);
                 setOpen(true);
@@ -168,15 +198,15 @@ export function LaptopSelector({
           >
             {results.length === 0 ? (
               <li className="px-3 py-4 text-sm text-ink-500 dark:text-ink-400">
-                No laptops match “{query}”.
+                Nothing matches “{query}”.
               </li>
             ) : (
-              results.map((laptop, index) => (
-                <li key={laptop.id} role="option" aria-selected={index === activeIndex}>
+              results.map((product, index) => (
+                <li key={product.id} role="option" aria-selected={index === activeIndex}>
                   <button
                     type="button"
                     onMouseEnter={() => setActiveIndex(index)}
-                    onClick={() => choose(laptop)}
+                    onClick={() => choose(product)}
                     className={cn(
                       "flex w-full items-center gap-3 rounded-xl px-2.5 py-2 text-left transition",
                       index === activeIndex
@@ -185,7 +215,7 @@ export function LaptopSelector({
                     )}
                   >
                     <Image
-                      src={laptop.image}
+                      src={product.image}
                       alt=""
                       width={56}
                       height={42}
@@ -193,14 +223,14 @@ export function LaptopSelector({
                     />
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-sm font-semibold">
-                        {laptop.name}
+                        {product.name}
                       </span>
                       <span className="block truncate text-xs text-ink-500 dark:text-ink-400">
-                        {shortGpu(laptop.specs.gpu)} · {laptop.specs.ram}GB
+                        {subtitle(product)}
                       </span>
                     </span>
-                    <span className="shrink-0 font-mono text-sm font-semibold tabular-nums text-brand-700 dark:text-brand-400">
-                      {formatPrice(laptop.price)}
+                    <span className="shrink-0 font-mono text-xs font-semibold tabular-nums">
+                      {formatPrice(product.price)}
                     </span>
                   </button>
                 </li>

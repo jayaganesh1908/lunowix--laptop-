@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/common/Badge";
 import { Breadcrumb } from "@/components/common/Breadcrumb";
+import { PriceCheckedAt } from "@/components/common/PriceCheckedAt";
 import { Rating } from "@/components/common/Rating";
 import { ReviewCard } from "@/components/common/ReviewCard";
 import { SectionHeading } from "@/components/common/SectionHeading";
@@ -23,8 +24,7 @@ import { PerformanceScores } from "@/components/details/PerformanceScores";
 import { GamesSupported } from "@/components/details/GamesSupported";
 import { SoftwareCompatibility } from "@/components/details/SoftwareCompatibility";
 import { LaptopActions } from "@/components/details/LaptopActions";
-import { relatedLaptops } from "@/lib/data/laptops";
-import { getLaptopById, laptops } from "@/lib/data/laptops";
+import { getLaptopById, laptops, relatedLaptops } from "@/lib/data/laptops";
 import {
   discountPercent,
   formatBattery,
@@ -36,10 +36,18 @@ import {
 } from "@/lib/utils/formatters";
 
 /*
- * No `generateStaticParams` any more: the root layout reads the session cookie,
- * which makes every route dynamic. Pre-computing params would only add a build
- * step whose output could never be used.
+ * Every laptop is pre-rendered at build time.
+ *
+ * This was removed once, with the note "the root layout reads the session
+ * cookie, which makes every route dynamic". That was true then and is not now:
+ * the session read went with Supabase, and `app/layout.tsx` says so itself —
+ * "that call was the only thing forcing every route to be dynamic". The
+ * workaround outlived its cause. The catalogue is a static module, so there is
+ * nothing left to defer to request time.
  */
+export function generateStaticParams() {
+  return laptops.map((laptop) => ({ id: laptop.id }));
+}
 
 export async function generateMetadata({
   params,
@@ -130,7 +138,7 @@ export default async function LaptopDetailsPage({
         ]}
       />
 
-      <div className="mt-6 grid gap-10 lg:grid-cols-2 lg:gap-12">
+      <div className="mt-6 grid grid-cols-1 gap-10 lg:grid-cols-2 lg:gap-12">
         <ImageGallery images={laptop.images} alt={laptop.name} />
 
         <div>
@@ -170,6 +178,7 @@ export default async function LaptopDetailsPage({
           <p className="mt-1 text-xs text-ink-500 dark:text-ink-400">
             Inclusive of all taxes · {laptop.specs.warranty}
           </p>
+          <PriceCheckedAt product={laptop} className="mt-0.5 block" />
 
           <LaptopActions laptop={laptop} className="mt-7" />
 
@@ -234,7 +243,7 @@ export default async function LaptopDetailsPage({
           title="What buyers say"
           description={`${laptop.reviews.toLocaleString("en-IN")} ratings, averaging ${laptop.rating.toFixed(1)} out of 5.`}
         />
-        <div className="mt-6 grid gap-4 lg:grid-cols-3">
+        <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
           {laptop.reviewList.map((review) => (
             <ReviewCard key={review.id} review={review} />
           ))}

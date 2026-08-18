@@ -20,7 +20,7 @@ export function CategoryShowcase() {
         description="A laptop is rated on compile times and battery. A phone on its camera and how long it lasts. Headphones on isolation and comfort. Same method, different questions."
       />
 
-      <div className="mt-10 grid gap-5 md:grid-cols-3">
+      <div className="mt-10 grid grid-cols-1 gap-5 md:grid-cols-3">
         {categories.map((category) => (
           <Link
             key={category.slug}

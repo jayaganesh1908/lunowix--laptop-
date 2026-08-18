@@ -115,7 +115,30 @@ export function RotatingWordLink({
     document.fonts?.ready.then(measure).catch(() => {});
   }, [items]);
 
-  const width = widths[current.word];
+  /*
+   * Width follows the word that is ON SCREEN, not the one that is next.
+   *
+   * `mode="wait"` keeps the outgoing word mounted for its whole exit, so
+   * sizing the box from `current.word` widened it a beat before the letters
+   * arrived — the box read as "Headphones" while still showing "Laptops",
+   * which looks like the label has been clipped. `onExitComplete` fires just
+   * as the incoming word mounts, so the two move together.
+   */
+  const [renderedWord, setRenderedWord] = useState(items[0].word);
+
+  /*
+   * `onExitComplete` is the precise signal, but it rides on Framer's animation
+   * loop — under throttled frames it never fires and `renderedWord` sticks,
+   * freezing the label and the width while `current` keeps advancing. This
+   * timer is the floor: slightly longer than the exit stagger, so it normally
+   * loses the race to `onExitComplete` and only takes over when frames stop.
+   */
+  useEffect(() => {
+    const id = window.setTimeout(() => setRenderedWord(current.word), 360);
+    return () => window.clearTimeout(id);
+  }, [current.word]);
+
+  const width = widths[renderedWord];
 
   return (
     <Link
@@ -127,7 +150,7 @@ export function RotatingWordLink({
       // The visible label changes on a timer, so the accessible name is pinned
       // to the current destination rather than being assembled from animating
       // per-letter spans, which a screen reader would read as loose characters.
-      aria-label={prefix ? `${prefix} ${current.word}` : current.word}
+      aria-label={prefix ? `${prefix} ${renderedWord}` : renderedWord}
       // `relative` anchors the measurement rail below; the caller's button
       // styles do not set a positioning context.
       className={cn("relative", className)}
@@ -164,7 +187,11 @@ export function RotatingWordLink({
         style={{ width }}
         className="relative inline-flex overflow-hidden align-bottom transition-[width] duration-300 ease-out"
       >
-        <AnimatePresence mode="wait" initial={false}>
+        <AnimatePresence
+          mode="wait"
+          initial={false}
+          onExitComplete={() => setRenderedWord(current.word)}
+        >
           <motion.span
             key={current.word}
             variants={WORD}

@@ -103,7 +103,7 @@ export default function AboutPage() {
 
       <section className="mt-16">
         <SectionHeading align="left" eyebrow="Principles" title="What we optimise for" />
-        <div className="mt-6 grid gap-5 lg:grid-cols-3">
+        <div className="mt-6 grid grid-cols-1 gap-5 lg:grid-cols-3">
           {PRINCIPLES.map(({ icon: Icon, title, body }) => (
             <article key={title} className="card-surface p-6">
               <span className="flex size-11 items-center justify-center rounded-xl bg-brand-500/10 text-brand-600 dark:text-brand-400">
@@ -125,7 +125,7 @@ export default function AboutPage() {
           title="How the numbers are produced"
           description="Three models, all deterministic, all applied identically to every machine in the catalogue."
         />
-        <div className="mt-6 grid gap-5 lg:grid-cols-3">
+        <div className="mt-6 grid grid-cols-1 gap-5 lg:grid-cols-3">
           {METHOD.map(({ icon: Icon, title, body }) => (
             <article key={title} className="card-surface p-6">
               <span className="flex size-11 items-center justify-center rounded-xl bg-brand-500/10 text-brand-600 dark:text-brand-400">

@@ -93,6 +93,16 @@ export function useLocalStorage<T>(
       } catch {
         // Ignore quota / blocked-storage failures; state still updates below.
       }
+      /*
+       * Advance the ref NOW, not at the next render.
+       *
+       * `valueRef` is refreshed during render, so two writes in one tick both
+       * resolved their updater against the pre-render value and the second
+       * silently discarded the first. Seeding a shared comparison did exactly
+       * that — `setSlot(0, a)` followed by `setSlot(1, b)` kept only `b`, and
+       * a link with two products opened with one.
+       */
+      valueRef.current = resolved;
       notify(key);
     },
     [key],

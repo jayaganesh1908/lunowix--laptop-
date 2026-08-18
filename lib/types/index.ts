@@ -172,6 +172,12 @@ export interface ProductBase {
   price: number;
   /** List price in ₹, used to derive the discount badge. */
   mrp: number;
+  /**
+   * `YYYY-MM-DD` this product's price was last verified, when it differs from
+   * the catalogue-wide snapshot. Omit it and the shared date is shown instead —
+   * see `CATALOGUE_PRICES_CHECKED_AT`.
+   */
+  priceCheckedAt?: string;
   summary: string;
   image: string;
   images: string[];

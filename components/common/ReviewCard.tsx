@@ -19,7 +19,15 @@ export function ReviewCard({
 
   return (
     <article className={cn("card-surface p-5", className)}>
-      <header className="flex items-start gap-3">
+      {/*
+        `flex-wrap`, and the name row wraps too.
+
+        The header was one unshrinkable line — avatar, name, "Verified" badge
+        and the star rating all refusing to give way — so at 320px the card
+        pushed 22px of horizontal scroll onto the whole detail page. Letting the
+        rating drop to its own line costs nothing and removes the hard minimum.
+      */}
+      <header className="flex flex-wrap items-start gap-3">
         <span
           aria-hidden
           className="flex size-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand-500 to-brand-700 text-sm font-bold text-ink-950"
@@ -27,7 +35,7 @@ export function ReviewCard({
           {initials}
         </span>
         <div className="min-w-0 flex-1">
-          <p className="flex items-center gap-1.5 text-sm font-semibold">
+          <p className="flex flex-wrap items-center gap-1.5 text-sm font-semibold">
             {review.author}
             {review.verified ? (
               <span

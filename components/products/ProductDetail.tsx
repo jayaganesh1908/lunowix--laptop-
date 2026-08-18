@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Badge, Breadcrumb, Rating, ReviewCard, SectionHeading } from "@/components/common/Display";
+import { PriceCheckedAt } from "@/components/common/PriceCheckedAt";
 import { ProductViewer } from "@/components/three/ProductViewer";
 import { ProductCard, ProductScores } from "./index";
 import { categoryFor, type Product } from "@/lib/types";
@@ -66,7 +67,7 @@ export function ProductDetail({
         ]}
       />
 
-      <div className="mt-6 grid gap-10 lg:grid-cols-2 lg:gap-12">
+      <div className="mt-6 grid grid-cols-1 gap-10 lg:grid-cols-2 lg:gap-12">
         <ProductViewer params={product.model3d} images={product.images} alt={product.name} />
 
         <div>
@@ -101,6 +102,7 @@ export function ProductDetail({
               </>
             ) : null}
           </div>
+          <PriceCheckedAt product={product} className="mt-1 block" />
 
           <div className="mt-8">
             <ProductScores product={product} />
@@ -117,7 +119,7 @@ export function ProductDetail({
             title="Games it can handle"
             description="Frame rates modelled from the GPU tier and how well the chip holds its clocks."
           />
-          <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {product.games.map((game) => (
               <div key={game.id} className="card-surface flex items-center gap-3 p-4">
                 <span className="text-2xl" aria-hidden>
@@ -144,7 +146,7 @@ export function ProductDetail({
             title="What they are good for"
             description="The same five measurements, re-weighted for the situation you would actually use them in."
           />
-          <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {product.useCases.map((useCase) => (
               <div key={useCase.id} className="card-surface flex items-center gap-3 p-4">
                 <span className="text-2xl" aria-hidden>
@@ -173,7 +175,7 @@ export function ProductDetail({
           title="What buyers say"
           description={`${product.reviews.toLocaleString("en-IN")} ratings, averaging ${product.rating.toFixed(1)} out of 5.`}
         />
-        <div className="mt-6 grid gap-4 lg:grid-cols-3">
+        <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
           {product.reviewList.map((review) => (
             <ReviewCard key={review.id} review={review} />
           ))}

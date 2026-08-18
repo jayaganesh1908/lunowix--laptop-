@@ -103,7 +103,7 @@ export function AdminDashboard() {
               variants={staggerFast}
               initial="hidden"
               animate="visible"
-              className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4"
+              className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4"
             >
               <DashboardCard
                 label="Total laptops"
@@ -135,7 +135,7 @@ export function AdminDashboard() {
               />
             </motion.div>
 
-            <div className="grid gap-5 xl:grid-cols-2">
+            <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
               <BrandDistributionChart />
               <PriceDistributionChart />
               <GamingTrendChart />
@@ -352,7 +352,7 @@ export function AdminDashboard() {
         ) : null}
 
         {section === "settings" ? (
-          <div className="mt-5 grid gap-5 lg:grid-cols-2">
+          <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-2">
             <section className="card-surface p-6">
               <h3 className="text-sm font-bold uppercase tracking-widest">Appearance</h3>
               <p className="mt-1 text-xs text-ink-500 dark:text-ink-400">
