@@ -15,7 +15,6 @@ export * from "./GameCard";
 export * from "./LoadingSkeleton";
 export * from "./Logo";
 export * from "./LunowixMark";
-export * from "./Modal";
 export * from "./Pagination";
 export * from "./PerformanceMeter";
 export * from "./Rating";

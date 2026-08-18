@@ -8,9 +8,6 @@ const TO = process.env.CONTACT_TO_EMAIL ?? "";
 
 const resend = RESEND_API_KEY ? new Resend(RESEND_API_KEY) : null;
 
-/** Whether a message can actually be delivered right now. */
-export const contactMailConfigured = Boolean(resend && TO);
-
 export interface ContactMessage {
   name: string;
   email: string;
