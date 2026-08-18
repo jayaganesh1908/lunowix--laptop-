@@ -9,7 +9,6 @@
     "build": "next build --turbopack",
     "start": "next start",
     "lint": "eslint",
-    "seed": "tsx scripts/seed.mjs",
     "test": "tsx --test \"lib/**/*.test.ts\"",
     "test:watch": "tsx --test --watch \"lib/**/*.test.ts\""
   },

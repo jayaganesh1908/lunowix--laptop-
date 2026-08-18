@@ -16,7 +16,6 @@ Lunowix is a device comparison platform that helps users discover and compare la
 - Next.js
 - React
 - TypeScript
-- Supabase
 - Tailwind CSS
 
 ## Installation
