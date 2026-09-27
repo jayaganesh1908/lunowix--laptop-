@@ -103,6 +103,24 @@ export default defineConfig({
       AUTH_SECRET:
         process.env.AUTH_SECRET ?? "e2e-only-signing-key-not-a-secret-000000",
       NEXT_PUBLIC_SITE_URL: BASE_URL,
+
+      /*
+       * One provider configured with throwaway credentials, the other two left
+       * unset. That covers BOTH halves of the social sign-in behaviour in one
+       * run: Google renders as a live link, GitHub and Facebook stay disabled.
+       *
+       * It is also what makes the CSRF protection testable. The callback refuses
+       * an unconfigured provider before it looks at anything else — correctly,
+       * since there is nothing to exchange a code with — so without a configured
+       * provider a forged callback stops at "not enabled" and the state check is
+       * never reached.
+       *
+       * These credentials never leave the process: every test that uses them
+       * fails at the state check, which happens before any network call to
+       * Google. Nothing here could authenticate against a real provider.
+       */
+      GOOGLE_CLIENT_ID: "e2e-not-a-real-client-id",
+      GOOGLE_CLIENT_SECRET: "e2e-not-a-real-client-secret",
     },
   },
 });

@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowRight, Eye, EyeClosed, Lock, Mail } from "lucide-react";
@@ -21,10 +21,11 @@ import { cn } from "@/lib/utils";
  * request, not a fixed timer that used to clear itself after 1200ms whether or
  * not anything had happened.
  *
- * The three social buttons remain decorative: OAuth needs a provider app and a
- * registered redirect for each, and a button that silently does nothing is
- * better than one that sends someone to a broken consent screen. They are
- * marked `disabled` and titled, so the state is visible rather than mysterious.
+ * The three social buttons are live for whichever providers this deployment has
+ * configured. `/api/auth/providers` reports that list, so enabling one is two
+ * environment variables and a redeploy — not a code change. A provider without
+ * credentials stays disabled and says so on hover, which is the honest state
+ * rather than a button that leads to a broken consent screen.
  */
 
 type FieldName = "email" | "password" | null;
@@ -98,6 +99,59 @@ export function SignInForm({ onSubmit, className }: SignInFormProps) {
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const errorId = useId();
+
+  /** Which providers this deployment can actually perform. */
+  const [liveProviders, setLiveProviders] = useState<string[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      try {
+        const response = await fetch("/api/auth/providers", { cache: "no-store" });
+        if (!response.ok || cancelled) return;
+        const data = (await response.json()) as { providers: { id: string }[] };
+        setLiveProviders(data.providers.map((p) => p.id));
+      } catch {
+        // Leave them disabled. A failed probe must not enable a button that
+        // would then redirect into a provider error.
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  /*
+   * The OAuth callback redirects here with `?error=…` when a flow fails, because
+   * someone mid-sign-in has a browser open, not a terminal. Translated to a
+   * sentence rather than shown as a slug.
+   */
+  useEffect(() => {
+    const code = new URLSearchParams(window.location.search).get("error");
+    if (!code) return;
+
+    const messages: Record<string, string> = {
+      cancelled: "Sign-in was cancelled.",
+      "provider-not-configured": "That sign-in method is not enabled on this site.",
+      "unknown-provider": "That sign-in method is not available.",
+      "no-email":
+        "That account did not share an email address, so we could not sign you in. Try email and password instead.",
+      "email-unverified":
+        "An account already uses that email. Sign in with your password to link them.",
+      "state-mismatch": "That sign-in attempt could not be verified. Please try again.",
+      "state-expired": "That sign-in attempt timed out. Please try again.",
+      "exchange-failed": "The sign-in provider could not be reached. Please try again.",
+      "bad-callback": "Something went wrong signing you in. Please try again.",
+      "rate-limited": "Too many attempts. Please wait a moment and try again.",
+    };
+
+    setError(messages[code] ?? "Something went wrong signing you in. Please try again.");
+
+    // Clear it from the URL so a refresh does not re-show a stale message.
+    const clean = new URL(window.location.href);
+    clean.searchParams.delete("error");
+    window.history.replaceState({}, "", clean.toString());
+  }, []);
 
   const fieldClass =
     "h-10 w-full rounded-xl border border-ink-200 bg-white/70 pl-10 pr-10 text-sm outline-none transition " +
@@ -257,21 +311,50 @@ export function SignInForm({ onSubmit, className }: SignInFormProps) {
         <div className="flex-grow border-t border-ink-200 dark:border-white/10" />
       </div>
 
-      {/* Google, GitHub and Facebook — all three, per the brief. */}
+      {/* Google, GitHub and Facebook. Each is live only where configured. */}
       <div className="grid grid-cols-3 gap-2">
-        {PROVIDERS.map((provider) => (
-          <button
-            key={provider.id}
-            type="button"
-            disabled
-            title={`${provider.label} sign-in is not configured on this deployment`}
-            aria-label={`Continue with ${provider.label} (not available)`}
-            className="flex h-10 cursor-not-allowed items-center justify-center gap-1.5 rounded-xl border border-ink-200 bg-white/70 text-xs font-semibold text-ink-700 opacity-50 transition dark:border-white/15 dark:bg-ink-950/60 dark:text-ink-200"
-          >
-            {provider.icon}
-            <span className="hidden sm:inline">{provider.label}</span>
-          </button>
-        ))}
+        {PROVIDERS.map((provider) => {
+          const live = liveProviders.includes(provider.id);
+          const shared =
+            "flex h-10 items-center justify-center gap-1.5 rounded-xl border text-xs font-semibold transition";
+
+          /*
+           * A LINK, not a fetch. The provider flow is a full-page redirect to a
+           * consent screen on another origin; there is no response for script to
+           * read, so an anchor is both simpler and what a browser expects.
+           */
+          return live ? (
+            <a
+              key={provider.id}
+              href={`/api/auth/oauth/${provider.id}`}
+              aria-label={`Continue with ${provider.label}`}
+              className={cn(
+                shared,
+                "border-ink-200 bg-white/70 text-ink-700 hover:border-brand-500 hover:text-brand-600",
+                "dark:border-white/15 dark:bg-ink-950/60 dark:text-ink-200 dark:hover:text-brand-400",
+              )}
+            >
+              {provider.icon}
+              <span className="hidden sm:inline">{provider.label}</span>
+            </a>
+          ) : (
+            <button
+              key={provider.id}
+              type="button"
+              disabled
+              title={`${provider.label} sign-in is not enabled on this site`}
+              aria-label={`Continue with ${provider.label} (not available)`}
+              className={cn(
+                shared,
+                "cursor-not-allowed border-ink-200 bg-white/70 text-ink-700 opacity-50",
+                "dark:border-white/15 dark:bg-ink-950/60 dark:text-ink-200",
+              )}
+            >
+              {provider.icon}
+              <span className="hidden sm:inline">{provider.label}</span>
+            </button>
+          );
+        })}
       </div>
 
       <p className="mt-4 text-center text-xs text-ink-500 dark:text-ink-400">

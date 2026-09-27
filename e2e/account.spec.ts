@@ -251,3 +251,86 @@ test.describe.serial("account lifecycle", () => {
     await expect(page.locator('button[aria-label*="Account menu" i]')).toBeVisible();
   });
 });
+
+/**
+ * The social buttons reflect the deployment, not a hardcoded assumption.
+ *
+ * `playwright.config.ts` configures Google with throwaway credentials and leaves
+ * GitHub and Facebook unset, so one run covers both states: a live provider
+ * renders as a link, an unconfigured one stays disabled and says so.
+ */
+test.describe("social sign-in", () => {
+  test("reports exactly the providers that are configured", async ({ request }) => {
+    const response = await request.get("/api/auth/providers");
+    expect(response.status()).toBe(200);
+
+    const { providers } = (await response.json()) as { providers: { id: string }[] };
+    expect(providers.map((p) => p.id)).toEqual(["google"]);
+  });
+
+  test("enables a configured provider and disables the rest", async ({ page }) => {
+    await page.goto("/auth/login");
+
+    // Live renders as an <a> that leaves for the provider.
+    const google = page.locator('a[aria-label="Continue with Google"]');
+    await expect(google).toBeVisible();
+    await expect(google).toHaveAttribute("href", "/api/auth/oauth/google");
+
+    // Unconfigured renders as a disabled <button>, never a link.
+    for (const label of ["GitHub", "Facebook"]) {
+      await expect(page.locator(`button[aria-label*="Continue with ${label}"]`)).toBeDisabled();
+      await expect(page.locator(`a[aria-label="Continue with ${label}"]`)).toHaveCount(0);
+    }
+  });
+
+  test("starting a configured flow redirects to the provider with state and PKCE", async ({
+    page,
+  }) => {
+    // Not followed: the provider is unreachable and irrelevant. What matters is
+    // the URL this app builds and that it pins a state cookie before leaving.
+    const response = await page.request.get("/api/auth/oauth/google", {
+      maxRedirects: 0,
+    });
+    expect(response.status()).toBe(307);
+
+    const target = new URL(response.headers().location);
+    expect(target.host).toBe("accounts.google.com");
+    expect(target.searchParams.get("response_type")).toBe("code");
+    expect(target.searchParams.get("redirect_uri")).toContain("/api/auth/oauth/google/callback");
+    expect(target.searchParams.get("state")).toBeTruthy();
+    // PKCE, so an intercepted code cannot be redeemed without the verifier.
+    expect(target.searchParams.get("code_challenge")).toBeTruthy();
+    expect(target.searchParams.get("code_challenge_method")).toBe("S256");
+  });
+
+  /*
+   * These assert the MESSAGE, not the URL.
+   *
+   * The form deliberately strips `?error=` from the address bar after reading it,
+   * so a refresh does not re-show a stale message — which means asserting on the
+   * query string is a race against that cleanup. One of these passed on it and the
+   * other did not. What the visitor actually gets is the sentence, so that is what
+   * is checked.
+   */
+  test("an unconfigured provider is refused with a readable reason", async ({ page }) => {
+    await page.goto("/api/auth/oauth/github");
+
+    await expect(page).toHaveURL(/\/auth\/login/);
+    await expect(page.locator("form").getByRole("alert")).toContainText(/not enabled on this site/i);
+  });
+
+  test("a forged callback is refused rather than signing anyone in", async ({ page }) => {
+    // No state cookie, so the CSRF pin cannot match whatever is in the query.
+    await page.goto("/api/auth/oauth/google/callback?code=fake&state=forged");
+
+    await expect(page).toHaveURL(/\/auth\/login/);
+    await expect(page.locator("form").getByRole("alert")).toContainText(/could not be verified/i);
+
+    // And most importantly: nobody was signed in.
+    const session = await page.evaluate(async () => {
+      const r = await fetch("/api/auth/session", { cache: "no-store" });
+      return ((await r.json()) as { user: unknown }).user;
+    });
+    expect(session).toBeNull();
+  });
+});

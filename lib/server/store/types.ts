@@ -30,7 +30,8 @@ export type Collection =
   | "reviews"
   | "newsletter"
   | "views"
-  | "passwordResets";
+  | "passwordResets"
+  | "identities";
 
 /**
  * A field equality filter. Every value is compared with `===` after a JSON
