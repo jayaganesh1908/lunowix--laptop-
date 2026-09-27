@@ -9,23 +9,32 @@ import { expect, test, type Locator, type Page } from "@playwright/test";
  */
 
 /**
- * Clicks, and catches the toast without racing it.
+ * Clicks a card control and proves the handler ran.
  *
- * Toasts dismiss themselves after 3200ms. An `expect(toast).toBeVisible()` AFTER
- * the click therefore has a 3.2 second window to land in, against a 15 second
- * polling timeout — so on a slow machine the toast can appear, live its life and
- * be gone before the first poll, and the failure reads "element(s) not found",
- * exactly as though the toast had never fired. That is what made two of these
- * tests fail on CI's slower storage adapter while the same assertions passed on
- * the faster one.
+ * `aria-pressed` is the assertion that carries the weight. It is driven by client
+ * state, `expect` retries it, and it is still true a minute later — so it proves
+ * both that the click reached the button (the z-index regression) and that the
+ * handler executed.
  *
- * Arming the wait BEFORE the click removes the window entirely: the listener is
- * already attached when the toast mounts, so a miss is now a real miss.
+ * The toast is checked in exactly ONE test below, not all of them. A toast lives
+ * 3200ms and then removes itself, which makes it the single most timing-sensitive
+ * thing on the page; asserting it four times over multiplied that exposure for no
+ * extra coverage, and it was the assertion that failed on CI's slower file-store
+ * leg while the identical click passed in its siblings.
+ */
+async function clickAndExpectSaved(control: Locator, expected: "true" | "false" = "true") {
+  await expect(control).toBeVisible();
+  await control.click();
+  await expect(control).toHaveAttribute("aria-pressed", expected);
+}
+
+/**
+ * The one place the toast itself is asserted.
  *
- * It also asserts `aria-pressed` afterwards, which is the durable half. The toast
- * proves the handler reached a mounted provider; `aria-pressed` proves the click
- * reached the button and changed state, and unlike the toast it is still there a
- * minute later.
+ * The wait is armed BEFORE the click, so the listener is attached before the toast
+ * mounts and its short life cannot be missed. `aria-pressed` is checked first, so a
+ * failure is unambiguous: if that passed and this did not, the handler ran but its
+ * toast never reached a mounted provider — which is precisely the bug this guards.
  */
 async function clickAndExpectToast(page: Page, control: Locator, message: RegExp) {
   await expect(control).toBeVisible();
@@ -34,6 +43,7 @@ async function clickAndExpectToast(page: Page, control: Locator, message: RegExp
   const appeared = toast.waitFor({ state: "visible", timeout: 15_000 });
 
   await control.click();
+  await expect(control).toHaveAttribute("aria-pressed", "true");
   await appeared;
 }
 
@@ -77,9 +87,7 @@ test.describe("product card controls", () => {
     await page.goto("/laptops");
 
     const compare = page.locator('button[aria-label*="compare" i]').first();
-    await clickAndExpectToast(page, compare, /added to compare/i);
-
-    await expect(compare).toHaveAttribute("aria-pressed", "true");
+    await clickAndExpectSaved(compare);
   });
 
   /**
@@ -93,8 +101,10 @@ test.describe("product card controls", () => {
     await page.goto("/phones");
 
     const heart = page.locator('button[aria-label*="wishlist" i]').first();
-    await clickAndExpectToast(page, heart, /wishlist/i);
+    await clickAndExpectSaved(heart);
 
+    // The sharper half of the z-index regression: the stretched link behind the
+    // button must not have swallowed the click and navigated.
     await expect(page).toHaveURL(/\/phones\/?$/);
   });
 
@@ -103,7 +113,7 @@ test.describe("product card controls", () => {
     await page.goto("/phones");
 
     const heart = page.locator('button[aria-label*="wishlist" i]').first();
-    await clickAndExpectToast(page, heart, /added to wishlist/i);
+    await clickAndExpectSaved(heart);
 
     await page.goto("/wishlist");
     // The board renders cards; the empty state is what must NOT be there.
