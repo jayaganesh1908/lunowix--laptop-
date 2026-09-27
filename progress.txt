@@ -5,6 +5,61 @@ Format: newest first. Measurements are CIELAB L* unless stated.
 Source of truth for values is styles/globals.css; DESIGN_SYSTEM.md explains the reasoning.
 
 
+2026-09-27 — Playwright in CI, and three test-design bugs
+----------------------------------------------------------
+The 12 browser checks from the backend pass had been run by hand and left out of
+CI. They are in now: 17 tests in e2e/, a separate job with a matrix over both
+storage adapters, Playwright's own webServer serving the PRODUCTION build rather
+than next dev — two of the bugs these guard against only appear in a production
+build.
+
+WHAT THEY COVER
+  product-cards  The two bugs that shipped invisibly: a toast swallowed by a
+                 duplicate context, and a heart button covered by the card's
+                 stretched link. A passing toast proves both, since the click has
+                 to reach the button and the button has to reach a mounted
+                 provider. Plus: the click must not navigate, and a save must
+                 survive a reload.
+  account        Register, localStorage merge into the account, the role-matched
+                 admin page, a second account refused with 403, writing a review,
+                 sign out keeping the browser's saved products, the review staying
+                 public while the form is gated, a wrong password refused, and
+                 signing back in.
+  health         /api/health reporting the live adapter, the products API
+                 validating its query string by CONTENTS not just status, 401 on
+                 protected routes, and a forged cookie rejected.
+
+THREE BUGS, all mine, all in the tests rather than the app
+  1. Playwright gives every test a fresh browser context, so a `serial` describe
+     shares execution ORDER but not session STATE. The account registered in the
+     first test was signed out by the second, and the navbar assertion failed
+     looking for a menu that correctly was not there. One shared context in
+     beforeAll fixes it.
+  2. The admin test asserted the admin path unconditionally, which only holds on
+     a virgin database — the first account becomes the admin, so the second local
+     run produced a member and failed for a reason unrelated to the app. It now
+     reads the assigned role and asserts the matching UI, and a second account
+     covers the member path deterministically.
+  3. `getByRole("alert")` is ambiguous in any Next.js app: the framework always
+     renders an empty <div role="alert" id="__next-route-announcer__">, so the
+     query resolved to two elements and failed strict mode — reporting a selector
+     problem as though the message never appeared. Scoped to the form.
+
+ALSO
+  .gitignore had `Thumbs.db.data/` on one line — an earlier append landed on a
+  file with no trailing newline, so `.data/` was never actually ignored and a
+  local run could have committed users.json, scrypt hashes and all. Repaired and
+  verified with git check-ignore.
+
+  playwright.config.ts takes E2E_CHROMIUM_PATH, for environments that have a
+  Chromium but cannot download one. Playwright pins an exact browser build per
+  release, so a pre-installed browser from another version is refused even though
+  a working one is on disk.
+
+Verified locally 17/17 three ways: fresh Postgres (admin path), the same Postgres
+again (member path), and the file store.
+
+
 2026-09-27 — CI, and a lint step that was passing on warnings
 -------------------------------------------------------------
 The repository had no .github/workflows at all, so the 89 tests only ever ran
@@ -212,10 +267,9 @@ background.
 
 OPEN / NOT DONE
 ---------------
-- No CI for the browser end-to-end pass. The 12 Playwright checks were run by
-  hand on both adapters; they are not in the workflow, because that means a
-  Chromium download and a built server per run. Worth adding if the auth surface
-  grows.
+- RESOLVED: the browser end-to-end pass is in CI. 17 Playwright tests in e2e/,
+  as a second job with a matrix over both storage adapters, browser cached on the
+  resolved Playwright version.
 - Scroll-reveal fragility: 26 elements ship with inline opacity:0 and depend on
   a JS observer. Fast Refresh has left them permanently invisible. See
   LESSONS.md for options. UNRESOLVED.
