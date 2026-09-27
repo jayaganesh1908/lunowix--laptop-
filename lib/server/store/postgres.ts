@@ -18,7 +18,39 @@ import { type Collection, type Doc, type Store, type Where } from "./types";
  * Render, or a local `postgres:16` container.
  */
 
-const CONNECTION_STRING = process.env.DATABASE_URL ?? "";
+/**
+ * The connection string, with any `sslmode` stripped out.
+ *
+ * `pg-connection-string` reads `sslmode` from the URL and, in the version `pg` 8
+ * depends on, treats `require` as an alias for `verify-full` — which then
+ * OVERRIDES the `ssl` option passed alongside it. Every managed provider puts
+ * `?sslmode=require` in the string it hands you, so `DATABASE_SSL` below was
+ * silently doing nothing: the app always demanded a fully verified chain, and
+ * connecting to a provider whose certificate this process has no root for failed
+ * with a bare "self-signed certificate".
+ *
+ * Neon happens to present a publicly-trusted certificate and would have survived
+ * that. Supabase, Railway, Render and a local container do not, and would not.
+ *
+ * Removing the parameter makes `sslConfig()` the single place TLS is decided,
+ * which is what the documentation already promised. `uselibpqcompat` goes too:
+ * it only exists to change how `sslmode` is interpreted, and there is no longer
+ * an `sslmode` for it to interpret.
+ */
+function connectionString(): string {
+  const raw = process.env.DATABASE_URL ?? "";
+  if (!raw) return raw;
+
+  try {
+    const url = new URL(raw);
+    url.searchParams.delete("sslmode");
+    url.searchParams.delete("uselibpqcompat");
+    return url.toString();
+  } catch {
+    // Not a parseable URL — hand it back untouched and let `pg` report why.
+    return raw;
+  }
+}
 
 /**
  * Hosted Postgres almost always terminates TLS with a certificate this process
@@ -50,7 +82,7 @@ let pool: Pool | null = null;
 
 function getPool(): Pool {
   pool ??= new Pool({
-    connectionString: CONNECTION_STRING,
+    connectionString: connectionString(),
     ssl: sslConfig(),
     // Free tiers cap connections hard, and serverless multiplies the process
     // count. A small ceiling per process is the safe default.
