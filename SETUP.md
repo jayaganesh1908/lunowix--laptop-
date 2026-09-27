@@ -37,6 +37,9 @@ are **required in production**:
 | `DATABASE_POOL_MAX` | no | Connections per process. Default 5. |
 | `NEXT_PUBLIC_SITE_URL` | no, but set it | Absolute origin for the sitemap, robots, canonical tags, OG card and reset links. |
 | `RESEND_API_KEY` | no | Enables the contact form and password reset. |
+| `GOOGLE_CLIENT_ID` / `_SECRET` | no | Enables Google sign-in. |
+| `GITHUB_CLIENT_ID` / `_SECRET` | no | Enables GitHub sign-in. |
+| `FACEBOOK_CLIENT_ID` / `_SECRET` | no | Enables Facebook sign-in — see the caveat below. |
 | `CONTACT_TO_EMAIL` | no | Where contact messages go. |
 | `RESEND_FROM_EMAIL` | no | Sender identity. Defaults to Resend's shared address. |
 | `LUNOWIX_DATA_DIR` | no | Where the file store writes. Default `.data/`. |
@@ -118,6 +121,9 @@ endpoints — they import `lib/data` directly, which is what keeps them static.
 | `/api/auth/session` | GET | — |
 | `/api/auth/forgot-password` | POST | — |
 | `/api/auth/reset-password` | POST | token |
+| `/api/auth/providers` | GET | — |
+| `/api/auth/oauth/[provider]` | GET | — |
+| `/api/auth/oauth/[provider]/callback` | GET | state |
 | `/api/wishlist` | GET, POST, DELETE | account |
 | `/api/wishlist/merge` | POST | account |
 | `/api/compare-history` | GET, POST, DELETE | account |
@@ -175,6 +181,61 @@ every file has a comment at the top saying why it is shaped the way it is.
 | `validation.ts` | 95 | The zod schemas, built from the shared constants. |
 | `stats.ts` | 112 | Admin figures. Reports authored and live view counts separately rather than blending them. |
 | `../validation/rules.ts` | 101 | The bounds and messages both sides share — no zod, so the browser does not pay for it. |
+
+## Social sign-in
+
+Google, GitHub and Facebook. A provider is enabled **only** when both its client id
+and secret are present; `/api/auth/providers` reports which are live and the
+sign-in form enables exactly those buttons. Turning one on is two environment
+variables and a redeploy — never a code change.
+
+Every provider needs this redirect URI registered, matching
+`NEXT_PUBLIC_SITE_URL` exactly, with no trailing slash:
+
+```
+https://your-site/api/auth/oauth/<provider>/callback
+```
+
+A mismatch is what produces `redirect_uri_mismatch`, and the fix is always to make
+the two strings identical.
+
+| Provider | Where | Effort |
+| --- | --- | --- |
+| **GitHub** | [github.com/settings/developers](https://github.com/settings/developers) → New OAuth App | Easiest. No review, no consent screen. |
+| **Google** | [console.cloud.google.com](https://console.cloud.google.com) → Credentials → OAuth client ID (Web application) | Straightforward. `openid email profile` are non-sensitive scopes and need no review. |
+| **Facebook** | [developers.facebook.com](https://developers.facebook.com) → create an app → add Facebook Login | **Blocked on Meta, not on code.** See below. |
+
+### Facebook needs Meta's approval first
+
+The code is complete and tested, but Meta gates the `email` permission behind
+**Business Verification and App Review**. Until that is done, the button works for
+accounts listed as **testers** on the Meta app and for nobody else: everyone else
+gets no email back and the sign-in is refused with "that account did not share an
+email address".
+
+Leave `FACEBOOK_CLIENT_ID` and `FACEBOOK_CLIENT_SECRET` unset until the review is
+through, and the button stays honestly disabled rather than failing for real
+visitors.
+
+### How an account gets linked
+
+Three paths, in order:
+
+1. **This provider account has signed in before** → its existing account.
+2. **An account already holds that email** → linked, but **only if the provider
+   asserts the email is verified**. This is the security-critical rule: anyone can
+   open an account at a provider claiming someone else's address, so linking on an
+   unverified claim would hand over that Lunowix account. It is refused, and the
+   person is asked to sign in with their password instead.
+3. **Neither** → a new account, with **no password**. No password can sign into it
+   (`passwordHash` is empty, which nothing verifies against) until its owner sets
+   one through the reset flow, which proves they control the inbox.
+
+The first account on a deployment is the admin however it was created — signing in
+with Google on a fresh install makes you the admin, exactly as registering would.
+
+Every failure redirects to `/auth/login?error=…` and the form renders it as a
+sentence. Nothing leaks a provider error string or a stack trace to the visitor.
 
 ## Security notes
 
