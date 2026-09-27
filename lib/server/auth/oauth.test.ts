@@ -6,6 +6,7 @@ import {
   createState,
   isConfigured,
   isProviderId,
+  providerDiagnostics,
   readState,
   redirectUri,
 } from "./oauth";
@@ -148,6 +149,59 @@ describe("oauth providers", () => {
     } finally {
       if (saved === undefined) delete process.env.NEXT_PUBLIC_SITE_URL;
       else process.env.NEXT_PUBLIC_SITE_URL = saved;
+    }
+  });
+
+  /*
+   * The diagnostic exists to answer "why is my provider not working", so the
+   * property that matters is the one that distinguishes it from
+   * `configuredProviders()`: it must still list a provider that is switched OFF.
+   * Hiding those would make setup impossible — the callback URL has to be
+   * registered with the provider before the credentials exist to enable it.
+   */
+  it("reports every provider with its callback, including the unconfigured ones", () => {
+    const saved = new Map<string, string | undefined>();
+    for (const name of ["GOOGLE", "GITHUB", "FACEBOOK"]) {
+      for (const half of ["CLIENT_ID", "CLIENT_SECRET"]) {
+        const key = `${name}_${half}`;
+        saved.set(key, process.env[key]);
+        delete process.env[key];
+      }
+    }
+    const savedSite = process.env.NEXT_PUBLIC_SITE_URL;
+
+    try {
+      process.env.NEXT_PUBLIC_SITE_URL = "https://example.com";
+
+      const none = providerDiagnostics();
+      assert.deepEqual(
+        none.map((p) => p.id),
+        ["google", "github", "facebook"],
+        "all three must appear even with nothing configured",
+      );
+      assert.equal(none.every((p) => p.configured === false), true);
+      assert.equal(
+        none.find((p) => p.id === "facebook")?.callback,
+        "https://example.com/api/auth/oauth/facebook/callback",
+        "an unconfigured provider must still publish the URL to register",
+      );
+
+      process.env.GOOGLE_CLIENT_ID = "abc";
+      process.env.GOOGLE_CLIENT_SECRET = "shh";
+      const some = providerDiagnostics();
+      assert.equal(some.find((p) => p.id === "google")?.configured, true);
+      assert.equal(some.find((p) => p.id === "github")?.configured, false);
+      assert.equal(some.length, 3, "enabling one must not drop the others");
+
+      // The advertised callback has to be the one the flow actually uses.
+      for (const entry of some) assert.equal(entry.callback, redirectUri(entry.id));
+    } finally {
+      for (const [key, value] of saved) {
+        if (value === undefined) delete process.env[key];
+        else process.env[key] = value;
+      }
+      if (savedSite === undefined) delete process.env.NEXT_PUBLIC_SITE_URL;
+      else process.env.NEXT_PUBLIC_SITE_URL = savedSite;
     }
   });
 });

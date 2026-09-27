@@ -101,10 +101,10 @@ Open this URL in a browser, or curl it:
 curl https://your-site.vercel.app/api/health
 ```
 
-You want exactly this:
+You want `status`, `store`, `auth` and `reachable` to read like this:
 
 ```json
-{ "status": "ok", "store": "postgres", "auth": true, "reachable": true }
+{ "status": "ok", "store": "postgres", "auth": true, "reachable": true, ... }
 ```
 
 Anything else means a variable is wrong. Read the table:
@@ -115,6 +115,21 @@ Anything else means a variable is wrong. Read the table:
 | `"auth": false` | `AUTH_SECRET` is missing or under 32 characters | Set it. Every sign-in fails without it. |
 | `"reachable": false` | The database cannot be reached | Check the connection string, and that the database is not paused. |
 | `503` | One of the above | The body says which. |
+
+The response also carries a `site`, a `mail` object and an `oauth` list. Those
+cover the optional features in Steps 6 and 7 and do **not** affect `status` — a
+deployment with no mail and no social sign-in is fully working for registration,
+sign-in, wishlists and reviews. Come back to them when you set those up.
+
+One field is worth checking now, though:
+
+```bash
+curl -s https://your-site.vercel.app/api/health | grep -o '"site":"[^"]*"'
+```
+
+If `site` is not your real URL, `NEXT_PUBLIC_SITE_URL` is wrong or unset. That
+breaks password-reset links and every OAuth callback later, so fix it before
+going further.
 
 Fix the variable, redeploy, check again. Do not skip this step — a green health
 check is what tells you the backend is actually wired up, rather than finding out
@@ -166,8 +181,117 @@ To turn them on:
 | `CONTACT_TO_EMAIL` | Where contact form messages should arrive |
 | `RESEND_FROM_EMAIL` | `Lunowix <hello@yourdomain.com>` — optional |
 
-Until you verify a domain with Resend, it will **only deliver to the email address
-you signed up with**. Test with that address, not a friend's.
+On Vercel, tick **Production, Preview and Development** for each variable, then
+redeploy. Environment variables are read when the app boots, so a variable added
+without a redeploy has no effect.
+
+Then confirm it landed:
+
+```bash
+curl -s https://your-site.vercel.app/api/health
+```
+
+```json
+"mail": { "passwordReset": true, "contactForm": true, "sharedSender": true }
+```
+
+| Field | If it is wrong |
+| --- | --- |
+| `passwordReset: false` | `RESEND_API_KEY` did not land. Check for a typo in the name, that you redeployed, and that the value has no stray spaces or newline. |
+| `contactForm: false` while `passwordReset: true` | `CONTACT_TO_EMAIL` is missing. Password reset needs only the key; the contact form also needs somewhere to deliver. |
+| `sharedSender: true` | Not an error — see below. |
+
+### The shared-sender trap
+
+`sharedSender: true` means you are sending as Resend's `onboarding@resend.dev`.
+Resend **accepts** those sends and returns success, but delivers them **only to the
+address you signed up with**. Everyone else silently receives nothing.
+
+This is the one failure that looks exactly like success: your own reset email
+arrives, so the feature seems done, and then a real user gets nothing. Test with
+your signup address to prove the wiring works, and treat the feature as finished
+only once `sharedSender` reads `false`.
+
+To get there, verify a domain in Resend (Domains → Add Domain, add the DNS records
+it gives you), then set `RESEND_FROM_EMAIL` to an address on that domain and
+redeploy. You need a domain you own; without one, password reset works for you and
+nobody else.
+
+---
+
+## Step 7 — Social sign-in (optional)
+
+Google and GitHub each take about five minutes. Facebook is a different story —
+see the end of this section.
+
+First, get the exact callback URL from your own deployment rather than typing it:
+
+```bash
+curl -s https://your-site.vercel.app/api/health
+```
+
+```json
+"oauth": [
+  { "id": "google", "configured": false,
+    "callback": "https://your-site.vercel.app/api/auth/oauth/google/callback" },
+  ...
+]
+```
+
+Copy the `callback` value for the provider you are setting up. It has to match
+what you register **character for character** — scheme, host, path, no trailing
+slash. A mismatch is the `redirect_uri_mismatch` error, and it is the single most
+common reason social sign-in does not work.
+
+### Google
+
+1. <https://console.cloud.google.com> → create or pick a project
+2. **APIs & Services → OAuth consent screen** → External → fill in app name and
+   your email → Save. You do **not** need Google's verification: the scopes used
+   here (`openid`, `email`, `profile`) are non-sensitive.
+3. **APIs & Services → Credentials → Create credentials → OAuth client ID**
+4. Application type: **Web application**
+5. Under **Authorised redirect URIs**, paste the `callback` from above
+6. Copy the client ID and client secret into Vercel as `GOOGLE_CLIENT_ID` and
+   `GOOGLE_CLIENT_SECRET`, tick all three environments, redeploy
+
+While the consent screen is in **Testing** mode, only accounts you add under
+**Test users** can sign in. Click **Publish app** to open it to everyone.
+
+### GitHub
+
+The simplest of the three — no review, no consent screen.
+
+1. <https://github.com/settings/developers> → **OAuth Apps** → **New OAuth App**
+2. Homepage URL: your site URL
+3. **Authorization callback URL**: paste the `callback` from above
+4. Register, then **Generate a new client secret**
+5. Set `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET`, tick all three
+   environments, redeploy
+
+### Facebook — leave this off
+
+The code is complete and works, but Meta gates the `email` permission behind
+Business Verification and App Review. Until you pass both, the button works only
+for accounts you add as testers on the Meta app, and for nobody else. That is
+Meta's process, not a gap here.
+
+Leave `FACEBOOK_CLIENT_ID` and `FACEBOOK_CLIENT_SECRET` unset and the button stays
+disabled with an honest label. Google and GitHub cover almost everyone.
+
+### Confirming it worked
+
+```bash
+curl -s https://your-site.vercel.app/api/health
+```
+
+`configured` must read `true` for the provider you set up. If it still reads
+`false`, either a variable name is misspelled, only one half of the credential is
+set (both are needed — an id without a secret would send people into a provider
+error), or you have not redeployed.
+
+Once `configured` is `true`, the button on `/auth/login` enables itself. The form
+asks the server which providers are live, so nothing needs changing in the code.
 
 ---
 
@@ -182,7 +306,10 @@ you signed up with**. Test with that address, not a friend's.
 | `DATABASE_POOL_MAX` | No | Connections per process, default 5. Free tiers cap connections; raise only if you know your limit. |
 | `RESEND_API_KEY` | No | Enables contact form and password reset. |
 | `CONTACT_TO_EMAIL` | No | Required alongside the API key for the contact form. |
-| `RESEND_FROM_EMAIL` | No | Defaults to Resend's shared sender. |
+| `RESEND_FROM_EMAIL` | No | Defaults to Resend's shared sender, which delivers only to your own signup address. |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | No | Both needed to enable Google sign-in. |
+| `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` | No | Both needed to enable GitHub sign-in. |
+| `FACEBOOK_CLIENT_ID` / `FACEBOOK_CLIENT_SECRET` | No | Both needed to enable Facebook sign-in, which also needs Meta's approval. Leave unset. |
 | `LUNOWIX_DATA_DIR` | No | Where the local file store writes. Development only. |
 | `LUNOWIX_ALLOW_FILE_STORE` | No | Permits the file store on a host detected as serverless. Only set this with a genuinely persistent disk. |
 
@@ -198,6 +325,39 @@ sign safely, rather than issuing cookies that stop working on the next deploy.
 **Accounts disappear after a while.**
 You are on the file store, not Postgres. `/api/health` will show
 `"store": "file"`. Set `DATABASE_URL`.
+
+**"Password reset email is not configured on this deployment."**
+That is the app telling the truth: `RESEND_API_KEY` is not set, so rather than
+claim an email is on its way it says nothing was sent. Check
+`/api/health` — `mail.passwordReset` will be `false`. See Step 6.
+
+**The reset email arrives for me but not for anyone else.**
+`/api/health` shows `"sharedSender": true`. You are sending through Resend's
+shared address, which only delivers to the account you signed up with. Verify a
+domain and set `RESEND_FROM_EMAIL`. See Step 6.
+
+**A social sign-in button is greyed out.**
+That provider is not configured. `/api/health` shows `configured: false` for it.
+Either a variable name is misspelled, only one half of the credential is set, or
+you have not redeployed since adding them. See Step 7.
+
+**`redirect_uri_mismatch`, or the provider shows its own error page.**
+What you registered with the provider does not match what the app sends. Do not
+guess it — read it from your own deployment:
+
+```bash
+curl -s https://your-site.vercel.app/api/health
+```
+
+Copy the `callback` for that provider and paste it into the provider's console
+exactly. If `site` in that response is not your real URL, fix
+`NEXT_PUBLIC_SITE_URL` first, because every callback is built from it.
+
+**Sign-in with a provider says the email is already in use.**
+Deliberate. An account already holds that address, and the provider did not
+assert it has verified the email, so linking is refused — otherwise anyone able
+to claim your address at a provider could take over your account. Sign in with
+the password, or use a provider that verifies email (Google and GitHub both do).
 
 **The app will not start, with a message about the filesystem.**
 That is the guard working. You are on a serverless host with no `DATABASE_URL`,

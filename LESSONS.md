@@ -230,3 +230,40 @@ by typing the URL.
 
 **Derive lists from a single source** (`categories` in `lib/types`) rather than writing them out
 per copy. The metadata already described itself as "consumed by the nav" — nothing consumed it.
+
+---
+
+## Killing the parent leaves the server running, and the next probe reads the old one
+
+While verifying `/api/health` against a real build, a probe script started `npm start`, curled the
+endpoint, then ran `kill $!`. That kills `npm`, not the `next-server` child it spawned. The orphan
+kept the port, so the next case failed to bind and curl answered from the **previous** case's
+server — with the previous case's environment.
+
+The result was two byte-identical JSON bodies where the variables I had just set read as unset.
+That looks exactly like Next.js inlining `process.env` at build time, and I went looking for it in
+the compiled output before checking the probe. The code was correct the whole time.
+
+The second attempt was worse: `pkill -f next-server` matched the shell running the probe, because
+that shell's own command line contained the pattern. It killed itself, twice, producing an empty
+result and a bare exit code.
+
+**Tear down by process tree, not by parent PID or by name**, and make a probe *refuse to run* when
+the port is already serving — a probe that silently reads a stale server is worse than no probe,
+because it reports confident nonsense.
+
+---
+
+## A formatter with no config in the repo will reformat the repo
+
+`npx prettier --write` on the files I had touched produced ~70 lines of diff in a file where I had
+added 33. The project has no `.prettierrc` and does not list prettier as a dependency, so `npx`
+fetched a current version with default settings — `printWidth: 80`, where this codebase is written
+at 100.
+
+Worse, 4 of the 6 files I ran it over were not prettier-clean at *any* width; they were
+hand-formatted. Formatting them "correctly" still rewrote code I had not changed.
+
+Reformatting unrelated lines buries the actual change in a review. **Check whether a formatter is
+configured before running one**, and when it is not, match the surrounding style by hand and verify
+with `git diff --stat` that the diff is the size of the change you made.
