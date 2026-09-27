@@ -262,7 +262,12 @@ npm run build
 npm run test:e2e
 ```
 
-Playwright starts the server itself. The suite does **not** assume an empty
+Playwright starts the server itself, serving the production build.
+
+**If you have run `npm run dev` since your last build, build again.** `next dev`
+and `next build` write to the same `.next` directory, and `next start` cannot serve
+a dev build — it fails with `TypeError: routesManifest.dataRoutes is not iterable`,
+which says nothing about the actual cause. The suite does **not** assume an empty
 database: the first account on a deployment becomes the admin, so it reads the
 role the server actually assigned and asserts the matching page, then registers a
 second account to cover the member path. That means a re-run against the same
