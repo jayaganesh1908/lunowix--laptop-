@@ -31,3 +31,13 @@ Thumbs.db
 /playwright-report/
 /blob-report/
 /.playwright/
+
+# Release archives built for distribution. Never commit one: a zip of this
+# repository, inside this repository, permanently bloats the history (archives do
+# not delta-compress), duplicates content git already tracks, and is stale the
+# moment anything changes. Build one on demand instead:
+#   git archive --format=zip --prefix=lunowix/ -o lunowix.zip main
+*.zip
+*.tar
+*.tar.gz
+*.tgz
