@@ -288,3 +288,38 @@ OPEN / NOT DONE
   re-export barrel. See LESSONS.md.
 - Full-app audit not run. This pass covered light-mode card treatment and the
   surfaces it directly implicates, per the request.
+
+2026-09-27 — setup diagnostics for mail and social sign-in
+- /api/health now also reports `site`, a `mail` object and an `oauth` list.
+  Mail and OAuth are configured entirely in a hosting dashboard, so a typo or a
+  missing redeploy was invisible from outside: the only way to find out was to
+  try a sign-in or a password reset and watch it fail.
+- The `oauth` list includes providers that are NOT configured, on purpose. The
+  callback URL has to be registered with a provider before its credentials
+  exist, so a list that hid them could not be used to set one up. It carries no
+  secret — the callback is a fixed public path, shown on the provider's own
+  consent screen.
+- `status` deliberately does NOT go degraded for missing mail or OAuth. Both are
+  optional; a deployment without them works for registration, sign-in, wishlists
+  and reviews. Making the one field an uptime monitor watches red on a healthy
+  deployment is how people learn to ignore it.
+- `mail.sharedSender` exists because Resend's default `onboarding@resend.dev`
+  returns success and delivers only to the account's own signup address. That is
+  the failure that looks like success, so it is named rather than folded into a
+  `mail: true`.
+- lib/email/config.ts is new: the predicates were needed by the health route,
+  and importing lib/email/reset.ts would have pulled the Resend SDK into the
+  smoke-test endpoint. It is also the single source of truth for the asymmetry
+  between the two paths — reset needs only a key, the contact form also needs an
+  inbox.
+- Verified against a real production build on three env configurations, plus a
+  mutation check: making the endpoint hide unconfigured providers fails the new
+  browser test. 112 unit tests, 5 health browser tests.
+- e2e/product-cards.spec.ts: clickAndExpectSaved now asserts the pre-click state
+  and retries the click, gated on the state not having flipped. CI dropped a
+  click entirely (aria-pressed stuck "false" for 34 polls / 15s on the file-store
+  leg while Postgres passed the same commit). Not reproducible locally in 32 runs
+  or at 20x CPU throttle. Navigation-plus-relocate and leaked-state were both
+  ruled out by evidence — see LESSONS.md. The retry's safety property (never
+  toggling back off) was validated by forcing a retry with a 1ms inner timeout
+  and asserting exactly one click was issued.

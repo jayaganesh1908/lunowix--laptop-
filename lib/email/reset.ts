@@ -2,10 +2,9 @@ import "server-only";
 
 import { Resend } from "resend";
 
-const RESEND_API_KEY = process.env.RESEND_API_KEY ?? "";
-const FROM = process.env.RESEND_FROM_EMAIL ?? "Lunowix <onboarding@resend.dev>";
+import { apiKey, fromAddress, resetMailConfigured } from "./config";
 
-const resend = RESEND_API_KEY ? new Resend(RESEND_API_KEY) : null;
+const client = () => new Resend(apiKey());
 
 /**
  * Sends a password reset link.
@@ -21,7 +20,7 @@ export async function sendPasswordResetEmail(
   to: string,
   resetUrl: string,
 ): Promise<{ ok: true } | { ok: false; reason: "unconfigured" | "failed" }> {
-  if (!resend) {
+  if (!resetMailConfigured()) {
     console.warn("[lunowix] RESEND_API_KEY not set — password reset email not sent.");
     return { ok: false, reason: "unconfigured" };
   }
@@ -49,8 +48,8 @@ export async function sendPasswordResetEmail(
   const text = `Reset your Lunowix password\n\n${resetUrl}\n\nThe link works once and expires in an hour. If you did not ask for this, ignore this email — your password has not changed.`;
 
   try {
-    const { error } = await resend.emails.send({
-      from: FROM,
+    const { error } = await client().emails.send({
+      from: fromAddress(),
       to,
       subject: "Reset your Lunowix password",
       html,

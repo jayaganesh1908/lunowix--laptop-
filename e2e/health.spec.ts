@@ -35,6 +35,56 @@ test("health reports ok, and names the store it is actually using", async ({ req
   if (process.env.DATABASE_URL) expect(body.store).toBe("postgres");
 });
 
+/**
+ * The setup diagnostic.
+ *
+ * Mail and social sign-in are configured entirely outside the code, so the only
+ * way to tell a deployment "your key did not land" is to ask it. This asserts the
+ * endpoint reports what the run actually configured rather than a fixed answer:
+ * the config sets Google credentials and no Resend key, so a stub that always said
+ * `true`, or always said `false`, fails here.
+ */
+test("health reports which mail and social sign-in config actually landed", async ({
+  request,
+}, testInfo) => {
+  const body = (await (await request.get("/api/health")).json()) as {
+    site: string | null;
+    mail: { passwordReset: boolean; contactForm: boolean; sharedSender: boolean | null };
+    oauth: { id: string; label: string; configured: boolean; callback: string }[];
+  };
+
+  // No RESEND_API_KEY in the e2e environment, so mail must report itself absent
+  // rather than claiming it can send.
+  expect(body.mail.passwordReset).toBe(false);
+  expect(body.mail.contactForm).toBe(false);
+  expect(body.mail.sharedSender).toBeNull();
+
+  /*
+   * All three providers, including the two with no credentials: a callback has to
+   * be registered with a provider BEFORE its credentials exist, so a list that hid
+   * the unconfigured ones could not be used to set one up.
+   */
+  expect(body.oauth.map((p) => p.id)).toEqual(["google", "github", "facebook"]);
+
+  // The config sets Google credentials and nothing else, which is what separates a
+  // real reading from a hardcoded one.
+  const byId = Object.fromEntries(body.oauth.map((p) => [p.id, p]));
+  expect(byId.google.configured).toBe(true);
+  expect(byId.github.configured).toBe(false);
+  expect(byId.facebook.configured).toBe(false);
+
+  /*
+   * The whole point of publishing the callback is that it is the string to paste
+   * into the provider's console, so it has to match the origin this deployment
+   * really runs on — a mismatch is `redirect_uri_mismatch` in production.
+   */
+  const origin = new URL(testInfo.project.use.baseURL!).origin;
+  expect(body.site).toBe(origin);
+  for (const provider of body.oauth) {
+    expect(provider.callback).toBe(`${origin}/api/auth/oauth/${provider.id}/callback`);
+  }
+});
+
 test("the products API validates its query string instead of ignoring it", async ({
   request,
 }) => {

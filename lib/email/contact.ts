@@ -2,11 +2,9 @@ import "server-only";
 
 import { Resend } from "resend";
 
-const RESEND_API_KEY = process.env.RESEND_API_KEY ?? "";
-const FROM = process.env.RESEND_FROM_EMAIL ?? "Lunowix <onboarding@resend.dev>";
-const TO = process.env.CONTACT_TO_EMAIL ?? "";
+import { apiKey, contactMailConfigured, contactToAddress, fromAddress } from "./config";
 
-const resend = RESEND_API_KEY ? new Resend(RESEND_API_KEY) : null;
+const client = () => new Resend(apiKey());
 
 export interface ContactMessage {
   name: string;
@@ -34,7 +32,7 @@ const escapeHtml = (value: string) =>
 export async function sendContactMessage(
   input: ContactMessage,
 ): Promise<{ ok: true } | { ok: false; reason: "unconfigured" | "failed" }> {
-  if (!resend || !TO) {
+  if (!contactMailConfigured()) {
     console.warn(
       "[lunowix] RESEND_API_KEY or CONTACT_TO_EMAIL not set — contact message not delivered.",
     );
@@ -54,9 +52,9 @@ export async function sendContactMessage(
   const text = `${input.subject}\nFrom ${input.name} <${input.email}>\n\n${input.message}`;
 
   try {
-    const { error } = await resend.emails.send({
-      from: FROM,
-      to: TO,
+    const { error } = await client().emails.send({
+      from: fromAddress(),
+      to: contactToAddress(),
       replyTo: input.email,
       subject: `[Contact] ${input.subject}`,
       html,

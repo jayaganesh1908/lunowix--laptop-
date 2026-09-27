@@ -228,6 +228,39 @@ export function redirectUri(id: ProviderId): string {
   return `${origin}/api/auth/oauth/${id}/callback`;
 }
 
+export interface ProviderDiagnostic {
+  id: ProviderId;
+  label: string;
+  configured: boolean;
+  /** The exact string to register with the provider. */
+  callback: string;
+}
+
+/**
+ * Every provider, live or not, with the callback URL it needs registered.
+ *
+ * Deliberately different from `configuredProviders()`: that one answers "what
+ * should the form offer", this one answers "why is my provider not working",
+ * which means it has to include the ones that are switched off. Setting a provider
+ * up is a chicken-and-egg problem otherwise — the callback URL has to be
+ * registered with the provider BEFORE the credentials exist to enable it, so a
+ * list that hides unconfigured providers cannot name the one string you need.
+ *
+ * The callback contains no secret. It is a fixed, public path on this site, it is
+ * shown on the provider's own consent screen, and it is visible in the address bar
+ * during any sign-in. Reporting it discloses nothing and removes the single most
+ * common cause of a broken flow, `redirect_uri_mismatch`, which is almost always
+ * `NEXT_PUBLIC_SITE_URL` disagreeing with what was registered.
+ */
+export function providerDiagnostics(): ProviderDiagnostic[] {
+  return (Object.keys(PROVIDERS) as ProviderId[]).map((id) => ({
+    id,
+    label: PROVIDERS[id].label,
+    configured: isConfigured(id),
+    callback: redirectUri(id),
+  }));
+}
+
 /* -------------------------------------------------------------------------- */
 /* State and PKCE                                                              */
 /* -------------------------------------------------------------------------- */

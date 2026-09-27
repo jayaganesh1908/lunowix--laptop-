@@ -100,12 +100,48 @@ curl https://your-site/api/health
 ```
 
 ```json
-{ "status": "ok", "store": "postgres", "auth": true, "reachable": true }
+{
+  "status": "ok",
+  "store": "postgres",
+  "auth": true,
+  "site": "https://your-site",
+  "mail": { "passwordReset": true, "contactForm": false, "sharedSender": true },
+  "oauth": [
+    { "id": "google", "label": "Google", "configured": true,
+      "callback": "https://your-site/api/auth/oauth/google/callback" },
+    { "id": "github", "label": "GitHub", "configured": false,
+      "callback": "https://your-site/api/auth/oauth/github/callback" }
+  ],
+  "reachable": true
+}
 ```
 
 `store: "file"` on a real URL means `DATABASE_URL` is missing. `auth: false`
 means `AUTH_SECRET` is missing and every sign-in will fail. Either returns 503,
 so a smoke test catches it instead of your first visitor.
+
+`status` covers only the two things that break the core of the site: the store
+and session signing. Mail and social sign-in are genuinely optional, so their
+absence is reported rather than treated as degraded — otherwise the one signal an
+uptime monitor watches would be red on a perfectly good deployment.
+
+The rest of the fields exist because mail and social sign-in are configured
+entirely outside the code, which means a mistake in a hosting dashboard is
+invisible from the outside:
+
+| Field | Meaning |
+| --- | --- |
+| `site` | The origin the app thinks it is on, from `NEXT_PUBLIC_SITE_URL`, trailing slash removed. If this is `http://localhost:3000` in production, reset links and every OAuth callback are wrong. |
+| `mail.passwordReset` | `RESEND_API_KEY` is set, so reset mail can be sent. |
+| `mail.contactForm` | The key **and** `CONTACT_TO_EMAIL` are set. The contact form needs both; password reset needs only the key. |
+| `mail.sharedSender` | `true` means you are sending as Resend's `onboarding@resend.dev`, which delivers **only to the address you signed up with**. Not an error, but not working for real users either. `null` when no key is set. |
+| `oauth[].configured` | Both halves of that provider's credential are present. Half a credential does not count — it would send people into a provider error. |
+| `oauth[].callback` | The exact string to register with that provider. Copy it from here rather than typing it. |
+
+All three providers are listed whether or not they are configured, because the
+callback has to be registered with the provider *before* the credentials exist to
+enable it. Nothing here is a secret: the callback is a fixed public path, shown on
+the provider's own consent screen and visible in the address bar mid-flow.
 
 ## API
 
