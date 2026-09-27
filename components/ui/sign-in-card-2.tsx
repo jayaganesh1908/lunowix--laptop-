@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { motion, useMotionValue, useTransform } from "framer-motion";
 import { LunowixMark } from "@/components/common/LunowixMark";
-import { SignInForm } from "@/components/ui/sign-in-form";
+import { SignInForm, type SignInFormProps } from "@/components/ui/sign-in-form";
 import { usePrefersReducedMotion } from "@/lib/hooks/usePrefersReducedMotion";
 import { cn } from "@/lib/utils";
 
@@ -26,8 +26,8 @@ import { cn } from "@/lib/utils";
  */
 
 export interface SignInCardProps {
-  /** Front-end only by default; supply this to do something real. */
-  onSubmit?: (values: { email: string; password: string; remember: boolean }) => void;
+  /** Passed straight through to `SignInForm`; see its `onSubmit`. */
+  onSubmit?: SignInFormProps["onSubmit"];
   className?: string;
 }
 

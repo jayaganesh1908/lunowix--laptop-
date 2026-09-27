@@ -16,6 +16,7 @@ import { Breadcrumb } from "@/components/common/Breadcrumb";
 import { PriceCheckedAt } from "@/components/common/PriceCheckedAt";
 import { Rating } from "@/components/common/Rating";
 import { ReviewCard } from "@/components/common/ReviewCard";
+import { ProductReviews } from "@/components/reviews/ProductReviews";
 import { SectionHeading } from "@/components/common/SectionHeading";
 import { LaptopCard } from "@/components/laptops/LaptopCard";
 import { ImageGallery } from "@/components/details/ImageGallery";
@@ -248,6 +249,10 @@ export default async function LaptopDetailsPage({
             <ReviewCard key={review.id} review={review} />
           ))}
         </div>
+
+        {/* Reader reviews and the write form. Client-side and loaded after paint,
+            so this route stays statically pre-rendered. */}
+        <ProductReviews productId={laptop.id} />
       </section>
 
       {related.length ? (

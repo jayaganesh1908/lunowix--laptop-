@@ -7,7 +7,6 @@ import {
   GitCompareArrows,
   Heart,
   LayoutDashboard,
-  LogIn,
   Menu,
   Search,
   X,
@@ -16,8 +15,7 @@ import { useEffect, useState } from "react";
 import { Logo } from "@/components/common/Logo";
 import { SearchBar } from "@/components/common/SearchBar";
 import { ThemeToggle } from "@/components/common/ThemeToggle";
-import { buttonStyles } from "@/components/common/buttonStyles";
-import { LaptopLoginLink } from "@/components/ui/laptop-login-button";
+import { AccountDrawerSection, AccountMenu } from "@/components/auth/AccountMenu";
 import { useCompare } from "@/lib/hooks/useCompare";
 import { useWishlist } from "@/lib/hooks/useWishlist";
 import { categories } from "@/lib/types";
@@ -175,14 +173,12 @@ export function Navbar() {
 
             <ThemeToggle />
 
-            {/* A laptop with the word on its screen, still magnetized — brand
-                particles are pulled into it on hover or focus.
-                `containerClassName` carries the responsive visibility, since
-                the wrapper is what participates in the nav's layout. */}
-            <LaptopLoginLink
-              href="/auth/login"
-              containerClassName="hidden sm:inline-flex"
-            />
+            {/* Signed out, this is the magnetized login laptop — brand particles
+                pulled into it on hover or focus. Signed in, it becomes the
+                account menu. `AccountMenu` owns that switch and keeps the
+                responsive visibility on whichever it renders, since the wrapper
+                is what participates in the nav's layout. */}
+            <AccountMenu />
 
             <button
               type="button"
@@ -278,10 +274,7 @@ export function Navbar() {
               </ul>
 
               <div className="border-t border-ink-900/5 p-4 dark:border-white/10">
-                <Link href="/auth/login" className={buttonStyles({ className: "w-full" })}>
-                  <LogIn className="size-4" aria-hidden />
-                  Login
-                </Link>
+                <AccountDrawerSection onNavigate={() => setOpen(false)} />
               </div>
             </motion.div>
           </div>

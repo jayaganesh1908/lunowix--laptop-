@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Badge, Breadcrumb, Rating, ReviewCard, SectionHeading } from "@/components/common/Display";
+import { ProductReviews } from "@/components/reviews/ProductReviews";
 import { PriceCheckedAt } from "@/components/common/PriceCheckedAt";
 import { ProductViewer } from "@/components/three/ProductViewer";
 import { ProductCard, ProductScores } from "./index";
@@ -180,6 +181,10 @@ export function ProductDetail({
             <ReviewCard key={review.id} review={review} />
           ))}
         </div>
+
+        {/* Reader reviews and the write form. Client-side and loaded after paint,
+            so this route stays statically pre-rendered. */}
+        <ProductReviews productId={product.id} />
       </section>
 
       {related.length ? (

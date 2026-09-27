@@ -18,11 +18,12 @@ export default function AdminPage() {
         Admin dashboard
       </h1>
       <p className="mt-3 max-w-2xl text-sm leading-relaxed text-ink-600 sm:text-base dark:text-ink-300">
-        Everything below is computed from the demo dataset in{" "}
+        Account, wishlist, review and subscriber figures are live from the
+        database and need an admin session. The catalogue charts are computed from{" "}
         <code className="rounded bg-ink-100 px-1.5 py-0.5 font-mono text-xs dark:bg-white/10">
           lib/data
         </code>
-        . Swap that for an API and the views keep working unchanged.
+        , which is the real product data and the same on every deployment.
       </p>
 
       <div className="mt-8">

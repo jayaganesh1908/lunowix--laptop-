@@ -18,8 +18,17 @@ export function NewsletterSection() {
   const [submitting, setSubmitting] = useState(false);
   const { toast } = useToast();
 
-  const onSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  /*
+   * A real subscribe.
+   *
+   * This used to run a 700ms timer and then claim "You're on the list", which
+   * nobody was — the address went nowhere. It now posts to `/api/newsletter`,
+   * which stores it, and the success state is only shown when the server says so.
+   */
+  const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (submitting) return;
+
     if (!EMAIL_PATTERN.test(email.trim())) {
       setError("Enter a valid email address, e.g. you@example.com");
       return;
@@ -27,12 +36,26 @@ export function NewsletterSection() {
     setError(null);
     setSubmitting(true);
 
-    // No backend in the demo — simulate the round trip so the UI states are real.
-    window.setTimeout(() => {
-      setSubmitting(false);
+    try {
+      const response = await fetch("/api/newsletter", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ email: email.trim(), source: "home" }),
+      });
+
+      if (!response.ok) {
+        const body = (await response.json().catch(() => ({}))) as { error?: string };
+        setError(body.error ?? "Could not sign you up just now. Please try again.");
+        return;
+      }
+
       setDone(true);
       toast("You're on the list. Price drops land every Friday.");
-    }, 700);
+    } catch {
+      setError("Could not reach the server. Check your connection and try again.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (

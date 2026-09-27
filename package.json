@@ -9,8 +9,8 @@
     "build": "next build --turbopack",
     "start": "next start",
     "lint": "eslint",
-    "test": "tsx --test \"lib/**/*.test.ts\"",
-    "test:watch": "tsx --test --watch \"lib/**/*.test.ts\""
+    "test": "tsx --conditions=react-server --test \"lib/**/*.test.ts\"",
+    "test:watch": "tsx --conditions=react-server --test --watch \"lib/**/*.test.ts\""
   },
   "dependencies": {
     "@react-three/drei": "^10.7.8",
@@ -18,7 +18,8 @@
     "clsx": "^2.1.1",
     "framer-motion": "^12.43.0",
     "lucide-react": "^1.28.0",
-    "next": "15.5.22",
+    "next": "15.5.26",
+    "pg": "^8.23.0",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "recharts": "^3.10.1",
@@ -32,6 +33,7 @@
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
+    "@types/pg": "^8.23.1",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/three": "^0.182.0",

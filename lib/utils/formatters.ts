@@ -7,10 +7,7 @@ const inr = new Intl.NumberFormat("en-IN", {
   maximumFractionDigits: 0,
 });
 
-const compact = new Intl.NumberFormat("en-IN", {
-  notation: "compact",
-  maximumFractionDigits: 1,
-});
+
 
 /** ₹1,24,990 */
 export function formatPrice(value: number) {
@@ -29,8 +26,32 @@ export function formatNumber(value: number) {
   return new Intl.NumberFormat("en-IN").format(value);
 }
 
+/**
+ * 8.6K, 2.4L, 1.2Cr — the Indian scale, computed rather than localised.
+ *
+ * This deliberately does NOT use `Intl.NumberFormat`'s `notation: "compact"`,
+ * which is what it used to do. Node's ICU and Chromium's ship different CLDR
+ * versions and disagree about `en-IN`: 8,616 formats as "8.6K" on the server and
+ * "8.6T" in the browser, because newer CLDR added an Indian-English short form
+ * where T means *thousand*. Server and client therefore rendered different text
+ * from the same number, React failed hydration on /admin and regenerated the
+ * tree, and "8.6T" reads as trillions to almost everybody.
+ *
+ * Arithmetic gives one answer on every runtime, which is the property this needs.
+ * The thresholds match `formatPriceShort`, so a count and a price are scaled the
+ * same way and the page speaks one language.
+ */
 export function formatCompact(value: number) {
-  return compact.format(value);
+  const abs = Math.abs(value);
+  const sign = value < 0 ? "-" : "";
+
+  // `trim` drops a trailing ".0" so 2.0L reads 2L, without touching 2.4L.
+  const trim = (n: number) => n.toFixed(1).replace(/\.0$/, "");
+
+  if (abs >= 10_000_000) return `${sign}${trim(abs / 10_000_000)}Cr`;
+  if (abs >= 100_000) return `${sign}${trim(abs / 100_000)}L`;
+  if (abs >= 1000) return `${sign}${trim(abs / 1000)}K`;
+  return `${sign}${Math.round(abs)}`;
 }
 
 export function formatStorage(gb: number) {

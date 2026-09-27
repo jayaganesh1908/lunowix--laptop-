@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowRight, Eye, EyeClosed, Lock, Mail } from "lucide-react";
@@ -15,15 +15,37 @@ import { cn } from "@/lib/utils";
  * a second copy of eight fields and their validation, both spellings render
  * this. `SignInCard` is now this form inside that chrome.
  *
- * FRONT END ONLY. `onSubmit` runs a timer and resolves — there is no auth
- * backend since Supabase was removed, and no credential is transmitted
- * anywhere. Wire `onSubmit` before shipping this as a login.
+ * `onSubmit` is now a real async handler. It returns a result rather than
+ * throwing, so the form can show a message beside the fields instead of the
+ * caller having to catch — and the pending state lasts exactly as long as the
+ * request, not a fixed timer that used to clear itself after 1200ms whether or
+ * not anything had happened.
+ *
+ * The three social buttons remain decorative: OAuth needs a provider app and a
+ * registered redirect for each, and a button that silently does nothing is
+ * better than one that sends someone to a broken consent screen. They are
+ * marked `disabled` and titled, so the state is visible rather than mysterious.
  */
 
 type FieldName = "email" | "password" | null;
 
+export interface SignInSubmitResult {
+  ok: boolean;
+  error?: string;
+  fieldErrors?: Record<string, string>;
+}
+
 export interface SignInFormProps {
-  onSubmit?: (values: { email: string; password: string; remember: boolean }) => void;
+  /**
+   * Performs the sign-in. Resolving with `ok: false` and an `error` shows that
+   * message; resolving with `ok: true` means the caller has navigated or the
+   * session has changed, and the form stops its spinner.
+   */
+  onSubmit?: (values: {
+    email: string;
+    password: string;
+    remember: boolean;
+  }) => Promise<SignInSubmitResult> | void;
   className?: string;
 }
 
@@ -74,6 +96,8 @@ export function SignInForm({ onSubmit, className }: SignInFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [focusedInput, setFocusedInput] = useState<FieldName>(null);
   const [rememberMe, setRememberMe] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const errorId = useId();
 
   const fieldClass =
     "h-10 w-full rounded-xl border border-ink-200 bg-white/70 pl-10 pr-10 text-sm outline-none transition " +
@@ -82,12 +106,24 @@ export function SignInForm({ onSubmit, className }: SignInFormProps) {
 
   return (
     <form
-      onSubmit={(event) => {
+      onSubmit={async (event) => {
         event.preventDefault();
+        if (isLoading) return;
+
+        setError(null);
         setIsLoading(true);
-        onSubmit?.({ email, password, remember: rememberMe });
-        window.setTimeout(() => setIsLoading(false), 1200);
+        try {
+          const result = await onSubmit?.({ email, password, remember: rememberMe });
+          // A field message is more useful beside the form than the generic one.
+          if (result && !result.ok) {
+            const field = result.fieldErrors?.email ?? result.fieldErrors?.password;
+            setError(field ?? result.error ?? "That did not work. Please try again.");
+          }
+        } finally {
+          setIsLoading(false);
+        }
       }}
+      noValidate
       className={cn("space-y-4", className)}
     >
       <div className="space-y-3">
@@ -171,9 +207,21 @@ export function SignInForm({ onSubmit, className }: SignInFormProps) {
         </Link>
       </div>
 
+      {/* `role="alert"` so a failed sign-in is announced, not just drawn. */}
+      {error ? (
+        <p
+          id={errorId}
+          role="alert"
+          className="rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs font-medium text-red-700 dark:text-red-300"
+        >
+          {error}
+        </p>
+      ) : null}
+
       <button
         type="submit"
         disabled={isLoading}
+        aria-describedby={error ? errorId : undefined}
         className="group/button relative mt-5 flex h-10 w-full items-center justify-center overflow-hidden rounded-xl bg-gradient-to-r from-brand-400 to-brand-500 text-sm font-semibold text-ink-950 transition hover:-translate-y-px disabled:pointer-events-none disabled:opacity-60"
       >
         <AnimatePresence mode="wait" initial={false}>
@@ -215,8 +263,10 @@ export function SignInForm({ onSubmit, className }: SignInFormProps) {
           <button
             key={provider.id}
             type="button"
-            aria-label={`Continue with ${provider.label}`}
-            className="flex h-10 items-center justify-center gap-1.5 rounded-xl border border-ink-200 bg-white/70 text-xs font-semibold text-ink-700 transition hover:border-brand-500 hover:text-brand-600 dark:border-white/15 dark:bg-ink-950/60 dark:text-ink-200 dark:hover:text-brand-400"
+            disabled
+            title={`${provider.label} sign-in is not configured on this deployment`}
+            aria-label={`Continue with ${provider.label} (not available)`}
+            className="flex h-10 cursor-not-allowed items-center justify-center gap-1.5 rounded-xl border border-ink-200 bg-white/70 text-xs font-semibold text-ink-700 opacity-50 transition dark:border-white/15 dark:bg-ink-950/60 dark:text-ink-200"
           >
             {provider.icon}
             <span className="hidden sm:inline">{provider.label}</span>

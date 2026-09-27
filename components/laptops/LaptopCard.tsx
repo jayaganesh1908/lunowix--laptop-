@@ -88,7 +88,14 @@ export function LaptopCard({ laptop, priority = false, className }: LaptopCardPr
           </div>
         </div>
 
-        <div className="absolute inset-x-3 bottom-3 flex justify-end gap-2 opacity-100 transition-opacity duration-200 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100">
+        {/* `z-10` lifts these above the stretched link below.
+            The title's `after:inset-0` overlay covers the whole card, and it
+            comes later in DOM order — so with both at `z-index: auto` it painted
+            on top of these buttons and swallowed every click on them. Saving or
+            comparing from a card navigated to the product page instead, on every
+            grid on the site. Raising the controls is the fix; lowering the
+            overlay would put it under the card body and break the card click. */}
+        <div className="absolute inset-x-3 bottom-3 z-10 flex justify-end gap-2 opacity-100 transition-opacity duration-200 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100">
           <button
             type="button"
             onClick={onWishlist}
