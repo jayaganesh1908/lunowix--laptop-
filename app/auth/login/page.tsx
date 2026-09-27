@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { SignInCard } from "@/components/ui/sign-in-card-2";
+import { Suspense } from "react";
+import { SignInPanel } from "@/components/auth/SignInPanel";
 import { VintageKeyboard } from "@/components/ui/vintage-keyboard";
 
 export const metadata: Metadata = {
@@ -8,12 +9,12 @@ export const metadata: Metadata = {
 };
 
 /**
- * Sign-in, front end only.
+ * Sign-in.
  *
- * There is no auth backend — Supabase and every server action went with it — so
- * the form validates, shows its pending state and resolves without sending a
- * credential anywhere. Wire `onSubmit` on `SignInCard` before this is a real
- * login.
+ * Real now: `SignInPanel` posts to `/api/auth/login`, which sets an httpOnly
+ * session cookie and folds this browser's saved wishlist into the account. This
+ * file stays a server component so it can export `metadata`; the hooks live in
+ * the panel.
  *
  * `mirrorTyping` lets the board light up as the email field is typed into. The
  * password field is excluded inside the component and cannot be opted in.
@@ -31,7 +32,11 @@ export default function LoginPage() {
   return (
     <div className="mx-auto flex min-h-[calc(100dvh-4.125rem)] w-full max-w-[1400px] items-center gap-12 px-4 py-12 sm:px-6 lg:px-8">
       <div className="flex w-full justify-center lg:w-[42%]">
-        <SignInCard />
+        {/* `useSearchParams` needs a Suspense boundary to keep the rest of the
+            route statically renderable. */}
+        <Suspense fallback={null}>
+          <SignInPanel />
+        </Suspense>
       </div>
 
       {/* `aria-hidden`: the board is decorative here. It mirrors the physical

@@ -16,6 +16,7 @@
 export * from "./useCompare";
 export * from "./useDebouncedValue";
 export * from "./useLocalStorage";
+export * from "./useSession";
 export * from "./usePrefersReducedMotion";
 export * from "./useTheme";
 export * from "./useWishlist";

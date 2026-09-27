@@ -5,6 +5,99 @@ Format: newest first. Measurements are CIELAB L* unless stated.
 Source of truth for values is styles/globals.css; DESIGN_SYSTEM.md explains the reasoning.
 
 
+2026-09-27 — Backend, and four bugs found while verifying it
+-------------------------------------------------------------
+The site had no backend since Supabase was removed: sign-in was front-end only,
+/auth/register said "accounts aren't live", the wishlist lived in localStorage,
+the newsletter ran an 800ms timer and claimed success, and the admin dashboard
+reported 4,820 users from a static array on a site with none.
+
+BACKEND
+  lib/server/store    One `Store` interface, two adapters. DATABASE_URL set ->
+                      Postgres (one jsonb `documents` table, GIN-indexed);
+                      unset -> JSON files under .data/, so a fresh clone runs
+                      with no setup. Every repository above the seam is written
+                      ONCE and runs unchanged on either. Refuses to hand back the
+                      file store on a detected serverless host, where writes do
+                      not survive between requests.
+
+  lib/server/auth     scrypt at N=2^16 from node:crypto, cost parameters stored
+                      with the hash so they can be raised later. Sessions are a
+                      random 32-byte id stored server-side, handed out in an
+                      HMAC-signed httpOnly cookie — the signature rejects a
+                      forged cookie without a database round trip.
+
+  lib/server/repo     users, sessions, wishlist, compareHistory, reviews,
+                      newsletter, views, passwordResets.
+
+  app/api             16 routes. Auth (register/login/logout/session, plus a real
+                      password reset with single-use hashed tokens), wishlist
+                      with a merge endpoint, compare history, per-product
+                      reviews, newsletter, products, admin stats and users, and
+                      /api/health.
+
+  Sign-in answers identically for an unknown address and a wrong password, and
+  spends the same time on both. Rate limiting on every auth and mail endpoint.
+  AUTH_SECRET is REQUIRED in production and the app refuses to sign sessions
+  without it — a per-process fallback would sign cookies the next deploy could
+  not verify.
+
+  The catalogue deliberately stays in lib/data. It is identical for every
+  visitor, and keeping it out of the database is what preserves all 74 static
+  detail pages.
+
+FRONT END
+  Real sign-in and registration; wishlist and compare still work signed out and
+  merge into the account on sign-in (a union, never a replacement); reviews you
+  can write, edit and delete; a working newsletter; an account menu with sign
+  out; and live admin figures replacing the invented ones.
+
+FOUR BUGS, all pre-existing, all found by verifying rather than by reading
+  1. Duplicate ToastContext. components/providers/index.tsx called
+     createContext() a second time, so `useToast` imported from the barrel hit
+     its no-op fallback. Every wishlist and compare toast on /phones,
+     /headphones, /products, /search and the home row was silently swallowed;
+     laptop cards, importing directly, worked.
+
+  2. Card buttons were unclickable. The title's stretched link
+     (after:absolute after:inset-0) had no z-index and came later in the DOM
+     than the wishlist/compare strip, so it painted over both controls across
+     the whole card. Clicking the heart navigated instead of saving, on every
+     grid, on both card components. Found by Playwright reporting which element
+     actually receives the click.
+
+  3. formatCompact was not deterministic. Intl compact notation for en-IN gives
+     "8.6K" on Node's ICU and "8.6T" on Chromium's newer CLDR, where T means
+     thousand. Server and client rendered different text, /admin failed
+     hydration and regenerated the subtree, and "8.6T" reads as trillions.
+     Replaced with arithmetic (K/L/Cr), matching formatPriceShort.
+
+  4. lib/utils/index.ts was a second full copy of four sibling modules — all 16
+     formatters, every animation variant, cn and filterParams. Both copies were
+     live depending on how a file wrote its import, which is why bug 3 would
+     have needed fixing twice. Collapsed to a re-export barrel.
+
+  Also: 1 critical + 4 high npm advisories cleared (Next 15.5.22 -> 15.5.26);
+  the byte-identical demoUsers block removed from lib/data/index.ts; two dead
+  files deleted (HomeSections.tsx, LaptopDetailSections.tsx, zero references).
+
+TESTS
+  23 -> 89 (100 with a test database). New: scrypt hashing including malformed
+  input and parameter upgrades, session signing and tamper rejection, the file
+  store including a concurrency test for the write lock, every repository,
+  client/server validation parity, formatCompact determinism, and 11 Postgres
+  adapter tests against a real server (jsonb null containment, bigint counts,
+  upsert on conflict, injection-resistant values).
+
+  Verified end to end in Chromium on BOTH adapters: 12/12, zero console errors.
+
+BUNDLE
+  Sharing zod schemas with the forms added ~74 KB to first load on every product
+  page. The rules moved to lib/validation/rules.ts as plain constants and pure
+  functions; the server builds its zod schemas from the same constants and
+  parity is now a tested property. Product pages 305 kB -> 236 kB.
+
+
 2026-08-14 — Light mode surface pass (design-audit, Phases 1-3)
 ---------------------------------------------------------------
 Light mode had never received the treatment dark mode got, and lagged badly.
@@ -97,9 +190,13 @@ OPEN / NOT DONE
   categories.
 - Non-card orange glows still on the pre-migration #FF6B00: primary button
   gradient, logo mark, section background washes, admin chart hover fills.
-- components/<domain>/index.tsx duplicates must be edited in parallel with their
-  single-component counterparts.
-- lib/types/laptop.ts vs lib/types/index.ts both define Laptop — 8 pre-existing
-  tsc errors.
+- components/products/index.tsx still implements ProductBrowser/ProductCard in a
+  barrel rather than re-exporting. It is the ONLY copy, so nothing can drift
+  against it, but the file should be split. The provider, layout, compare,
+  laptops, admin, common and lib/utils barrels are now re-exports only.
+- RESOLVED: lib/types/laptop.ts now re-exports from lib/types/index.ts; the 8
+  tsc errors are gone and the suite typechecks clean.
+- RESOLVED: lib/utils/index.ts was a second copy of four sibling modules. Now a
+  re-export barrel. See LESSONS.md.
 - Full-app audit not run. This pass covered light-mode card treatment and the
   surfaces it directly implicates, per the request.

@@ -19,14 +19,16 @@ import {
   TopLaptopsList,
 } from "./Charts";
 import { DashboardCard } from "./DashboardCard";
+import { LiveStats } from "./LiveStats";
+import { UserTable } from "./UserTable";
 import { ADMIN_SECTIONS, Sidebar, type AdminSection } from "./Sidebar";
 import { Badge } from "@/components/common/Badge";
 import { Rating } from "@/components/common/Rating";
 import { useTheme, type ThemeMode } from "@/lib/hooks/useTheme";
 import { allReviews, laptops } from "@/lib/data/laptops";
 import { games } from "@/lib/data/games";
+import { allProducts } from "@/lib/data/products";
 import { softwareCatalog } from "@/lib/data/software";
-import { demoUsers, totalUsers } from "@/lib/data/users";
 import {
   compatibilityTone,
   formatCompact,
@@ -112,11 +114,15 @@ export function AdminDashboard() {
                 delta={8}
                 icon={<LaptopIcon className="size-5" aria-hidden />}
               />
+              {/* This card used to read `totalUsers = 4820` from a static seed
+                  array, so a deployment with no accounts at all reported 4,820
+                  of them. Real account figures are in `LiveStats` below, which
+                  reads the database; this slot now shows a catalogue number,
+                  which is something this component can actually know. */}
               <DashboardCard
-                label="Total users"
-                value={formatCompact(totalUsers)}
-                hint={`${demoUsers.filter((user) => user.active).length} active this week`}
-                delta={12}
+                label="Products tracked"
+                value={formatNumber(allProducts.length)}
+                hint="Laptops, phones and headphones"
                 icon={<Users className="size-5" aria-hidden />}
               />
               <DashboardCard
@@ -134,6 +140,12 @@ export function AdminDashboard() {
                 icon={<TrendingUp className="size-5" aria-hidden />}
               />
             </motion.div>
+
+            {/* Live figures from the database. Kept visually separate from the
+                catalogue charts below because the two have different sources and
+                different failure modes: these need an admin session and can come
+                back empty, those are compiled into the bundle and always render. */}
+            <LiveStats />
 
             <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
               <BrandDistributionChart />
@@ -187,46 +199,7 @@ export function AdminDashboard() {
           </div>
         ) : null}
 
-        {section === "users" ? (
-          <div className={cn(tableWrap, "mt-5")}>
-            <table className="w-full min-w-[48rem]">
-              <caption className="sr-only">Registered users</caption>
-              <thead className="border-b border-ink-900/5 dark:border-white/10">
-                <tr>
-                  <th scope="col" className={th}>User</th>
-                  <th scope="col" className={th}>Role</th>
-                  <th scope="col" className={th}>Joined</th>
-                  <th scope="col" className={th}>Wishlist</th>
-                  <th scope="col" className={th}>Comparisons</th>
-                  <th scope="col" className={th}>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {demoUsers.map((user) => (
-                  <tr key={user.id} className="border-b border-ink-900/5 last:border-b-0 dark:border-white/10">
-                    <td className={td}>
-                      <span className="block font-semibold">{user.name}</span>
-                      <span className="block text-xs text-ink-500 dark:text-ink-400">{user.email}</span>
-                    </td>
-                    <td className={td}>
-                      <Badge tone={user.role === "Admin" ? "brand" : user.role === "Editor" ? "info" : "neutral"}>
-                        {user.role}
-                      </Badge>
-                    </td>
-                    <td className={cn(td, "text-ink-600 dark:text-ink-300")}>{formatDate(user.joinedAt)}</td>
-                    <td className={cn(td, "font-mono tabular-nums")}>{user.wishlistCount}</td>
-                    <td className={cn(td, "font-mono tabular-nums")}>{user.comparisons}</td>
-                    <td className={td}>
-                      <Badge tone={user.active ? "success" : "neutral"}>
-                        {user.active ? "Active" : "Dormant"}
-                      </Badge>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : null}
+        {section === "users" ? <UserTable /> : null}
 
         {section === "reviews" ? (
           <div className="mt-5 space-y-3">

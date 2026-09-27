@@ -4,6 +4,127 @@ Mistakes made and corrections learned, so they are not repeated. Newest first.
 
 ---
 
+## Two `createContext()` calls are two contexts, and the second one fails silently
+
+`components/providers/index.tsx` held a duplicate `ToastProvider` — including its
+own `const ToastContext = createContext(null)`. `app/layout.tsx` mounts the provider from
+`ToastProvider.tsx`, so `useToast` imported from the barrel resolved against a context with no
+provider above it, hit the deliberate "safe outside the provider" no-op fallback, and returned a
+`toast()` that did nothing at all.
+
+`ProductCard` imported from the barrel. So every wishlist and compare confirmation on
+`/phones`, `/headphones`, `/products`, `/search` and the home featured row was **silently
+dropped**, while `LaptopCard` — which imports from `./ToastProvider` directly — showed its toast
+normally. Nothing threw. Nothing logged. Two identical-looking buttons behaved differently
+depending on which import path their file had used.
+
+The no-op fallback is what made it invisible. It exists so components stay portable, which is
+reasonable, and it converts "this is mounted wrong" into "this quietly does nothing".
+
+**A context object's identity is the contract, not its shape.** A duplicated provider is not a
+duplicate — it is a second, unreachable one.
+
+---
+
+## A stretched link covers the buttons above it, because DOM order breaks the tie
+
+Both product cards use the stretched-link pattern for the title:
+`after:absolute after:inset-0`, so the whole card is clickable. The wishlist and compare buttons
+sit in an absolutely positioned strip over the image, earlier in the DOM.
+
+Neither had a `z-index`. Positioned elements at `z-index: auto` paint in DOM order, so the
+title's `::after` — later in the markup — painted **on top of the buttons across the entire
+card**. Clicking the heart navigated to the product page instead of saving. On every grid on the
+site, for both card components, for both controls.
+
+It survived review because it looks right in the markup (the buttons are visually on top, and
+they respond to hover) and because the click still *did something* — just the wrong thing, which
+reads as a mis-tap rather than a bug.
+
+Found by Playwright, which reports the element that actually receives a click rather than the one
+you aimed at.
+
+**With `inset-0` overlays, state the stacking explicitly.** `z-10` on the controls; not a lower
+`z-index` on the overlay, which would put it under the card body and break the card click.
+
+---
+
+## `Intl` is not deterministic across runtimes, so it cannot be used during render
+
+`formatCompact` was `Intl.NumberFormat("en-IN", { notation: "compact" })`. The locale was pinned,
+so it looked safe. It was not:
+
+| Runtime | 8,616 formats as |
+| --- | --- |
+| Node 22 (ICU 78) | `8.6K` |
+| Chromium (newer CLDR) | `8.6T` |
+
+Newer CLDR added an Indian-English short form where **T means thousand**. Server and client
+rendered different text from the same number, React failed hydration on `/admin`, and it threw
+away and regenerated the subtree. Pinning the locale does not help, because the disagreement is
+about the locale's *data*, which ships with each runtime and changes on its own schedule.
+
+It also produced a number nobody can read: "8.6T" is trillions to almost everybody.
+
+**For text that both sides render, use arithmetic, not locale data.** The replacement is nine
+lines of division and gives one answer everywhere. Keep `Intl` for client-only rendering, or send
+a formatted snapshot from the server.
+
+---
+
+## `force-static` silently empties `searchParams`
+
+`/api/products` was declared `export const dynamic = "force-static"` on the reasoning that the
+catalogue only changes at build time. That is true of the *data* and false of the *response*.
+
+A statically rendered route handler has no request to read, so `new URL(request.url).searchParams`
+came back empty. `?category=phone&sort=price-asc&limit=3` returned 24 unsorted products of every
+category — with a **200**. Worse, the validation below it never ran, so the deliberate 400s for a
+bad `limit` or an unknown `category` were unreachable and the endpoint looked permissive rather
+than broken.
+
+Caught only because a test asserted on the *contents* of the response. A status-code assertion
+would have passed.
+
+**Anything that varies by query string is dynamic by definition.** Cacheability is a property of
+the response, not of where the data came from.
+
+---
+
+## Sharing a zod schema with the browser ships zod to the browser
+
+Client and server were validating with the same imported schemas, so the two could not disagree
+about what a valid password was. Good intent; it added **~74 KB to first load on every product
+page** — the most-visited page on a comparison site — because importing a schema module into a
+client component pulls zod into the bundle.
+
+The fix keeps the single source of truth one level lower: the bounds and messages live in a
+plain module of constants and pure functions, the server builds its zod schemas from those
+constants, and the forms import only the functions. Parity is now a tested property rather than
+a shared import — the test runs the same values through both and asserts they agree.
+
+**Share the rule, not the implementation of the rule.**
+
+---
+
+## `isVisible()` does not wait, so it tests the wrong instant
+
+A Playwright assertion reported that a posted review never appeared. It had appeared — the API
+returned 201 and the DOM updated about 200ms later.
+
+`locator.isVisible()` answers for the DOM as it is and returns immediately. It accepts a
+`timeout` option, which does nothing useful here, so `isVisible({ timeout: 10000 })` reads exactly
+like a polling assertion and is not one. Anything waiting on a fetch plus a re-render has to use
+`waitFor` or `expect`.
+
+Cost an afternoon chasing a bug that did not exist — and, more dangerously, the same mistake
+inverted would make a test pass while the feature was broken.
+
+**A false failure and a false pass come from the same mistake.** Check that a failing assertion
+is actually asserting what you think before believing it.
+
+---
+
 ## WCAG contrast ratio is the wrong instrument for surfaces
 
 A comment in `globals.css` claimed the dark page/card pair measured **1.72:1**. It actually
