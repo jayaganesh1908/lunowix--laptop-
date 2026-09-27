@@ -33,7 +33,7 @@ are **required in production**:
 | --- | --- | --- |
 | `AUTH_SECRET` | **in production** | Signs the session cookie. At least 32 characters — `openssl rand -base64 32`. |
 | `DATABASE_URL` | **in production** | Any Postgres connection string. |
-| `DATABASE_SSL` | no | `relaxed` (default), `verify`, or `disable` for a local container. |
+| `DATABASE_SSL` | no | `relaxed` (default), `verify`, or `disable` for a local container. Any `sslmode` in `DATABASE_URL` is stripped so this is the single place TLS is decided. |
 | `DATABASE_POOL_MAX` | no | Connections per process. Default 5. |
 | `NEXT_PUBLIC_SITE_URL` | no, but set it | Absolute origin for the sitemap, robots, canonical tags, OG card and reset links. |
 | `RESEND_API_KEY` | no | Enables the contact form and password reset. |
