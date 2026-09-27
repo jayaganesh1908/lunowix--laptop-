@@ -1,4 +1,20 @@
-import { expect, test, type BrowserContext, type Page } from "@playwright/test";
+import { expect, test, type BrowserContext, type Locator, type Page } from "@playwright/test";
+
+/**
+ * Clicks, and catches the toast without racing it.
+ *
+ * Toasts dismiss themselves after 3200ms, so an assertion made AFTER the click has
+ * only that window to land in — and on a slow machine the toast can appear, expire
+ * and be gone before the first poll, failing as "element(s) not found" exactly as
+ * though it had never fired. Arming the wait first removes the window.
+ */
+async function clickAndExpectToast(page: Page, control: Locator, message: RegExp) {
+  await expect(control).toBeVisible();
+  const toast = page.locator('[aria-live="polite"]').getByText(message);
+  const appeared = toast.waitFor({ state: "visible", timeout: 15_000 });
+  await control.click();
+  await appeared;
+}
 
 /**
  * The account lifecycle, end to end through the real UI.
@@ -59,9 +75,7 @@ test.describe.serial("account lifecycle", () => {
     // Save a phone while signed out, so there is something to merge.
     await page.goto("/phones");
     const heart = page.locator('button[aria-label*="wishlist" i]').first();
-    await expect(heart).toBeVisible();
-    await heart.click();
-    await expect(page.locator('[aria-live="polite"]').getByText(/wishlist/i)).toBeVisible();
+    await clickAndExpectToast(page, heart, /wishlist/i);
 
     const before = await savedIds();
     expect(before.length).toBeGreaterThan(0);
@@ -184,9 +198,9 @@ test.describe.serial("account lifecycle", () => {
     await page.goto("/");
 
     await page.locator('button[aria-label*="Account menu" i]').click();
-    await page.getByRole("menuitem", { name: /sign out/i }).click();
 
-    await expect(page.locator('[aria-live="polite"]').getByText(/signed out/i)).toBeVisible();
+    const signOut = page.getByRole("menuitem", { name: /sign out/i });
+    await clickAndExpectToast(page, signOut, /signed out/i);
 
     const session = await page.evaluate(async () => {
       const response = await fetch("/api/auth/session", { cache: "no-store" });
