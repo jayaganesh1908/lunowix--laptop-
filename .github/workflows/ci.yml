@@ -41,16 +41,25 @@ jobs:
         # Without this the first query can land before the server accepts
         # connections, which fails as a confusing connection error rather than as
         # "the database was not ready".
+        #
+        # `-U postgres -d lunowix_test` is not decoration. Bare `pg_isready`
+        # defaults to the current OS user as the role, which on a runner is
+        # `root` -- a role this server does not have. It still exits 0, because
+        # pg_isready treats a rejected connection as proof the server is up, so
+        # the gate passed by accident while filling the container log with
+        # `FATAL: role "root" does not exist` on every probe. Thirteen of them in
+        # the first run, which is exactly the kind of noise that sends the next
+        # person debugging the wrong thing.
         options: >-
-          --health-cmd pg_isready
+          --health-cmd "pg_isready -U postgres -d lunowix_test"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 10
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           # The test runner is `node:test` driven through tsx, and the file store
           # uses fs/promises APIs that settled in 22. Pinned to major so a patch
