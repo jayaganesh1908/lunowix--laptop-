@@ -80,7 +80,8 @@ against a real Postgres service container — see `.github/workflows/ci.yml`.
 
 ## Documentation
 
-- [SETUP.md](./SETUP.md) — installation, environment, deployment, API, security
+- [DEPLOYMENT.md](./DEPLOYMENT.md) — step-by-step: database, secret, host, verify, first account
+- [SETUP.md](./SETUP.md) — installation, environment, API, backend file map, security
 - [DESIGN_SYSTEM.md](./DESIGN_SYSTEM.md) — colour, type and surface reasoning
 - [LESSONS.md](./LESSONS.md) — bugs found and what they taught
 - [progress.txt](./progress.txt) — running changelog

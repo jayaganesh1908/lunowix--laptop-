@@ -131,6 +131,51 @@ endpoints — they import `lib/data` directly, which is what keeps them static.
 `/api/products` takes `category`, `q`, `sort`, `limit` and `offset`. An invalid
 value is a 400, not a silent default.
 
+## Backend file map
+
+1,935 lines across 21 modules, plus 17 route handlers. Nothing here is generated;
+every file has a comment at the top saying why it is shaped the way it is.
+
+### Storage — `lib/server/store`
+
+| File | Lines | Does |
+| --- | --- | --- |
+| `types.ts` | 56 | The `Store` interface: `get`, `put`, `delete`, `find`, `findOne`, `count`, `deleteWhere`, `init`. Deliberately document-shaped, so each repository is written once. |
+| `index.ts` | 84 | Picks the adapter from `DATABASE_URL` and caches one instance. Holds the guard that refuses the file store on a serverless host. |
+| `postgres.ts` | 167 | One `documents` table, `jsonb` column, GIN index. Filters compile to `data @> $2::jsonb`, always parameterised. |
+| `file.ts` | 149 | JSON file per collection. Atomic writes via temp-file rename, and an in-process mutex so two writes cannot lose each other. |
+
+### Auth — `lib/server/auth`
+
+| File | Lines | Does |
+| --- | --- | --- |
+| `password.ts` | 100 | scrypt at N=2^16. Cost parameters stored with the hash, so they can be raised without invalidating anyone. Malformed input reads as a mismatch, never a throw. |
+| `session.ts` | 123 | Issues and verifies HMAC-signed cookie values, and owns the cookie attributes. Throws in production without `AUTH_SECRET`. |
+| `guard.ts` | 60 | `currentUser`, `requireUser`, `requireAdmin`. Checks cheapest-first: signature, then session row, then that the account still exists. |
+
+### Data — `lib/server/repo`
+
+| File | Lines | Does |
+| --- | --- | --- |
+| `users.ts` | 165 | Accounts. Email normalised to one identity; first account becomes admin; sign-in spends equal time on a wrong password and an unknown address. |
+| `sessions.ts` | 70 | Session rows. Expiry enforced server-side, not from the cookie. Bulk revoke for a password change. |
+| `wishlist.ts` | 85 | One row per (user, product), so two devices cannot clobber each other. `mergeWishlist` unions, never replaces. |
+| `compare.ts` | 67 | Comparison history, order-insensitive de-duplication, capped at 8. |
+| `reviews.ts` | 125 | One review per person per product; a second submission edits the first. Delete re-checks ownership. |
+| `newsletter.ts` | 63 | Address is the row id. Unsubscribe marks rather than deletes, so a later import cannot re-mail someone. |
+| `views.ts` | 49 | Per-product view counters. No visitor identity, so nothing to track. |
+| `passwordResets.ts` | 83 | Tokens stored as SHA-256 hashes, single use, one hour, and issuing a new one kills the last. |
+
+### Shared — `lib/server`
+
+| File | Lines | Does |
+| --- | --- | --- |
+| `http.ts` | 81 | One response envelope, `readJson` for validated bodies, and `guarded` so an unexpected throw becomes a 500 with nothing leaked. |
+| `rateLimit.ts` | 93 | Fixed-window limiter, in memory, bounded so it cannot become its own memory leak. |
+| `validation.ts` | 95 | The zod schemas, built from the shared constants. |
+| `stats.ts` | 112 | Admin figures. Reports authored and live view counts separately rather than blending them. |
+| `../validation/rules.ts` | 101 | The bounds and messages both sides share — no zod, so the browser does not pay for it. |
+
 ## Security notes
 
 - **Passwords**: scrypt from `node:crypto` at N=2^16, salted per password, with
