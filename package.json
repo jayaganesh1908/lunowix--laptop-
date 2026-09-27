@@ -8,7 +8,7 @@
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
     "start": "next start",
-    "lint": "eslint",
+    "lint": "eslint --max-warnings 0",
     "test": "tsx --conditions=react-server --test \"lib/**/*.test.ts\"",
     "test:watch": "tsx --conditions=react-server --test --watch \"lib/**/*.test.ts\""
   },

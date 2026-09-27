@@ -73,7 +73,10 @@ model, and the full API.
 | `npm run build` | Production build |
 | `npm start` | Serve the build (needs `AUTH_SECRET`) |
 | `npm test` | 89 tests; 100 with a test database |
-| `npm run lint` | ESLint |
+| `npm run lint` | ESLint (`--max-warnings 0`) |
+
+CI runs all of these on every pull request, plus the test suite a second time
+against a real Postgres service container — see `.github/workflows/ci.yml`.
 
 ## Documentation
 
