@@ -267,3 +267,36 @@ hand-formatted. Formatting them "correctly" still rewrote code I had not changed
 Reformatting unrelated lines buries the actual change in a review. **Check whether a formatter is
 configured before running one**, and when it is not, match the surrounding style by hand and verify
 with `git diff --stat` that the diff is the size of the change you made.
+
+---
+
+## A click can be dropped outright, and it does not look like a timing problem
+
+CI's file-store leg failed on "a saved product persists across a reload" with `aria-pressed` stuck at
+`"false"` through 34 polls over 15 seconds. The same commit passed the Postgres leg, and the test
+passed locally 32 times in a row and under 20× CPU throttling.
+
+The instinct is "flaky timing", and the previous pass through this file acted on that instinct —
+narrowing the toast assertion — without a root cause. That was wrong twice over: an earlier attempt
+blamed pre-hydration clicks and was disproven when a click at `hydrated: false` still produced its
+toast, because React 19 **replays** events captured during hydration.
+
+What the 34 identical polls actually say is that the handler never ran at all. Two other
+explanations were ruled out by evidence rather than by feel:
+
+- **The click navigated and the locator silently re-bound to another button.** Impossible here: the
+  detail page's wishlist control is a `<button>` whose accessible name comes from its text, with no
+  `aria-label` attribute, so `button[aria-label*="wishlist" i]` cannot match it. The navbar's is an
+  `<a>`. The locator resolved to a card heart 34 times, so the page never changed.
+- **Leaked state, so the click toggled OFF.** Playwright's default `page` fixture gives each test a
+  fresh context, and the sibling test that clicks the same button expecting `true` passed in the
+  same run.
+
+What is left is a click dispatched in the window between `load` and React attaching its listeners.
+There is no listener to receive it, so — unlike a click *during* hydration — there is nothing to
+replay. It is narrow, which is exactly why a fast machine never sees it.
+
+**`toBeVisible` is not "ready to click".** It is satisfied by server-rendered HTML that has no
+handler yet. Assert a client-driven attribute first, and make a toggle's click idempotent by gating
+each retry on the state not having flipped — then a dropped click costs a retry instead of a red
+build, and a retry can never toggle the control back off.

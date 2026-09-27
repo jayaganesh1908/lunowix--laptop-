@@ -23,9 +23,38 @@ import { expect, test, type Locator, type Page } from "@playwright/test";
  * leg while the identical click passed in its siblings.
  */
 async function clickAndExpectSaved(control: Locator, expected: "true" | "false" = "true") {
-  await expect(control).toBeVisible();
-  await control.click();
-  await expect(control).toHaveAttribute("aria-pressed", expected);
+  const before = expected === "true" ? "false" : "true";
+
+  /*
+   * Assert the state we are about to toggle FROM, before touching anything.
+   *
+   * `toBeVisible` alone was satisfied by the server-rendered HTML, which exists
+   * before React has attached a handler to it. This is a retrying assertion on a
+   * client-driven attribute, so it also waits out that gap — and if the state is
+   * ever wrong going in, the failure says so instead of surfacing as a toggle that
+   * appears not to have worked.
+   */
+  await expect(control).toHaveAttribute("aria-pressed", before);
+
+  /*
+   * Click until the state flips.
+   *
+   * CI's file-store leg failed here with `aria-pressed` stuck at "false" through
+   * 34 polls over 15 seconds. That is not a slow click: the handler never ran. A
+   * click dispatched in the window between `load` and React attaching its
+   * listeners is dropped outright — there is no listener to receive it, so unlike
+   * a click during hydration there is nothing for React to replay either. It could
+   * not be reproduced locally in 32 consecutive runs or under 20x CPU throttling,
+   * which is what a window that narrow looks like from a fast machine.
+   *
+   * Re-clicking a TOGGLE is only safe because each attempt is gated on the state
+   * still being `before`: the moment it flips, no further click is sent, so this
+   * can never toggle back off and mask a real failure.
+   */
+  await expect(async () => {
+    if ((await control.getAttribute("aria-pressed")) === before) await control.click();
+    await expect(control).toHaveAttribute("aria-pressed", expected, { timeout: 2_000 });
+  }).toPass({ timeout: 20_000, intervals: [500, 1_000, 2_000, 4_000] });
 }
 
 /**

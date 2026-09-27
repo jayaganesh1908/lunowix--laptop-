@@ -315,3 +315,11 @@ OPEN / NOT DONE
 - Verified against a real production build on three env configurations, plus a
   mutation check: making the endpoint hide unconfigured providers fails the new
   browser test. 112 unit tests, 5 health browser tests.
+- e2e/product-cards.spec.ts: clickAndExpectSaved now asserts the pre-click state
+  and retries the click, gated on the state not having flipped. CI dropped a
+  click entirely (aria-pressed stuck "false" for 34 polls / 15s on the file-store
+  leg while Postgres passed the same commit). Not reproducible locally in 32 runs
+  or at 20x CPU throttle. Navigation-plus-relocate and leaked-state were both
+  ruled out by evidence — see LESSONS.md. The retry's safety property (never
+  toggling back off) was validated by forcing a retry with a 1ms inner timeout
+  and asserting exactly one click was issued.
