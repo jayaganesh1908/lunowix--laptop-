@@ -201,7 +201,9 @@ every file has a comment at the top saying why it is shaped the way it is.
 | `npm run dev` | Dev server on port 3000. |
 | `npm run build` | Production build; pre-renders every product detail page. |
 | `npm start` | Serves the build. Needs `AUTH_SECRET`. |
-| `npm test` | 89 tests. 100 with a test database — see below. |
+| `npm test` | 89 unit tests. 100 with a test database — see below. |
+| `npm run test:e2e` | 17 end-to-end tests in a real browser. Needs `npm run build` first. |
+| `npm run test:e2e:ui` | The same suite in Playwright's inspector, for debugging one test. |
 | `npm run lint` | ESLint, with `--max-warnings 0`. |
 
 Tests run on Node's built-in runner through `tsx`; there is no framework to
@@ -233,14 +235,45 @@ conflict), none of which a typecheck can see.
 
 ## Continuous integration
 
-`.github/workflows/ci.yml` runs on every pull request and every push to `main`:
-install, lint, typecheck, the test suite **twice** — once on the file store and
-once against a `postgres:16` service container — then the production build.
+`.github/workflows/ci.yml` runs on every pull request and every push to `main`,
+as two jobs:
 
-Running the suite on both adapters is the point. They sit behind one `Store`
-interface and the whole claim of that seam is that the repositories above it
-behave identically on either; a green run on only one of them would not check
-that.
+**`checks`** — install, lint, typecheck, the unit suite **twice** (once on the
+file store, once against a `postgres:16` service container), then the production
+build. Usually under three minutes.
+
+**`e2e`** — builds the app, serves the production build, and drives it in
+Chromium. A matrix over both storage adapters, so it runs twice.
+
+Running on both adapters is the point. They sit behind one `Store` interface and
+the whole claim of that seam is that the repositories above it behave identically
+on either; a green run on only one of them would not check that.
+
+The end-to-end job is separate so a ~150 MB browser download never delays the fast
+feedback, and the browser is cached on the resolved Playwright version — the
+browser build is pinned per release, so a looser cache key would hand a new
+Playwright an old browser it refuses to launch. On failure the HTML report and
+traces upload as an artifact.
+
+### Running the end-to-end suite locally
+
+```bash
+npm run build
+npm run test:e2e
+```
+
+Playwright starts the server itself. The suite does **not** assume an empty
+database: the first account on a deployment becomes the admin, so it reads the
+role the server actually assigned and asserts the matching page, then registers a
+second account to cover the member path. That means a re-run against the same
+database passes.
+
+If you are somewhere that cannot download a browser — a sandbox, an air-gapped
+runner — point it at one you already have:
+
+```bash
+E2E_CHROMIUM_PATH=/path/to/chrome npm run test:e2e
+```
 
 `npm run lint` carries `--max-warnings 0`. Plain `eslint` exits 0 when there are
 only warnings, and this config reports unused variables and imports as warnings,

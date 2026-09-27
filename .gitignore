@@ -20,4 +20,14 @@ skills-lock.json
 
 # OS files
 .DS_Store
-Thumbs.db.data/
+Thumbs.db
+
+# Local database for the JSON file store. NEVER commit this: it holds real
+# accounts, including scrypt password hashes and email addresses.
+.data/
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/.playwright/

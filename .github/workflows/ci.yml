@@ -106,3 +106,110 @@ jobs:
       # exactly the kind of change worth failing on.
       - name: Build
         run: npm run build
+
+  e2e:
+    name: End to end (${{ matrix.store }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    # A separate job from `checks` so a ~150 MB browser download never delays the
+    # fast feedback. Lint and typecheck failures should land in under two minutes;
+    # this one is allowed to take longer.
+    strategy:
+      # One adapter failing is information about that adapter, so let the other
+      # finish rather than cancelling it.
+      fail-fast: false
+      matrix:
+        # Both storage adapters, driven through the real UI. The unit tests already
+        # prove the repositories behave the same on either, but only a browser
+        # proves the whole stack does -- and `file` is what a fresh clone runs, so
+        # it is the path most contributors will actually be on.
+        store: [postgres, file]
+
+    # Started for both legs, including `file`, which does not use it. Services
+    # cannot be made conditional on a matrix value, and a container that starts in
+    # a few seconds and goes unused is cheaper than splitting this into two jobs
+    # that would then duplicate every step above.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: lunowix_e2e
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d lunowix_e2e"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      # Cached on the resolved Playwright version, because the browser build is
+      # pinned per release: a cache keyed on anything looser would hand a new
+      # Playwright an old browser, which it refuses to launch.
+      - name: Resolve the Playwright version
+        id: pw
+        run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: Cache the browser
+        id: browser-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.pw.outputs.version }}
+
+      # `--with-deps` on a miss only: it installs system libraries via apt, which
+      # a cache hit does not restore but also does not need, since the runner image
+      # already carries them for the supported browsers.
+      - name: Install the browser
+        if: steps.browser-cache.outputs.cache-hit != 'true'
+        run: npx playwright install --with-deps chromium
+
+      - name: Install the browser's system dependencies
+        if: steps.browser-cache.outputs.cache-hit == 'true'
+        run: npx playwright install-deps chromium
+
+      # Built as its own step so a build failure is reported as a build failure,
+      # rather than as the browser timing out waiting for a server that never came
+      # up. `npm start` in the Playwright config serves this.
+      - name: Build
+        run: npm run build
+
+      - name: Run the end-to-end suite
+        env:
+          # Unset for the `file` leg, which is the point of the matrix: the store
+          # selector reads this, so leaving it empty exercises the JSON file store.
+          DATABASE_URL: ${{ matrix.store == 'postgres' && 'postgres://postgres:postgres@localhost:5432/lunowix_e2e' || '' }}
+          DATABASE_SSL: disable
+          # `npm start` sets NODE_ENV=production, where the app refuses to sign a
+          # session without this -- correct behaviour, and a confusing way to
+          # discover a missing variable, so it is set here.
+          #
+          # A literal, and deliberately not a repository secret. It signs nothing
+          # that outlives the job: the server is torn down with the runner and the
+          # database with it. Putting a real secret here would mean sharing a
+          # production signing key with every fork's CI, which is worse than a
+          # public throwaway. Must still be 32+ characters, or the app rejects it.
+          AUTH_SECRET: ci-only-throwaway-signing-key-not-a-real-secret
+        run: npm run test:e2e
+
+      # Only on failure, and only for 7 days: traces are large, and a passing run
+      # produces nothing worth keeping.
+      - name: Upload the report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ matrix.store }}
+          path: playwright-report/
+          retention-days: 7

@@ -29,7 +29,26 @@ before(async () => {
 
   const { PostgresStore } = await import("./postgres");
   store = new PostgresStore();
-  await store.init();
+
+  /*
+   * Fail with something readable.
+   *
+   * A throw from `before` makes node:test cancel every subtest with
+   * "test did not finish before its parent and was cancelled", which says nothing
+   * about the actual problem — a wrong host, a database that does not exist, a
+   * server that is not running. Re-thrown with the cause attached, the first line
+   * of output names what to fix.
+   */
+  try {
+    await store.init();
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : String(error);
+    throw new Error(
+      `Could not reach TEST_DATABASE_URL. Check the host, port, credentials and ` +
+        `that the database exists. Postgres said: ${reason}`,
+      { cause: error },
+    );
+  }
 
   // Start from a known state without dropping a table someone else may own.
   for (const collection of ["users", "sessions", "wishlist", "reviews", "newsletter", "views"] as const) {
