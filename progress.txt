@@ -5,6 +5,36 @@ Format: newest first. Measurements are CIELAB L* unless stated.
 Source of truth for values is styles/globals.css; DESIGN_SYSTEM.md explains the reasoning.
 
 
+2026-09-27 — CI, and a lint step that was passing on warnings
+-------------------------------------------------------------
+The repository had no .github/workflows at all, so the 89 tests only ever ran
+when somebody typed `npm test`. Added .github/workflows/ci.yml: install, lint,
+typecheck, the suite TWICE — file store, then a postgres:16 service container —
+then the build, on every pull request and every push to main.
+
+Running it on both adapters is the point rather than thoroughness for its own
+sake: they sit behind one Store interface and the whole claim of that seam is
+that the repositories above it behave identically on either. A green run on one
+adapter does not check that.
+
+Found while verifying each step actually fails on a regression: `npm run lint`
+exited 0 with an unused variable present. ESLint exits 0 when there are only
+warnings, and this config reports unused vars and imports as warnings — so the
+lint step would have printed them and passed. Worse than no lint step, because
+it looks like coverage. The script now carries --max-warnings 0, set in
+package.json rather than in the workflow so a contributor gets the same verdict
+locally.
+
+Verified by probe: a failing test exits 1, a type error exits 2, an unused
+variable now exits 1, and a clean tree exits 0 on all three. Every CI step was
+also run verbatim against a local Postgres on 5432 with password auth, matching
+the service container: 100/100 and a clean build.
+
+No AUTH_SECRET in the build step, deliberately. It is a runtime requirement of
+`next start` and the build does not read it; a placeholder would hide a
+regression where something started reading it during the build.
+
+
 2026-09-27 — Backend, and four bugs found while verifying it
 -------------------------------------------------------------
 The site had no backend since Supabase was removed: sign-in was front-end only,
@@ -182,6 +212,10 @@ background.
 
 OPEN / NOT DONE
 ---------------
+- No CI for the browser end-to-end pass. The 12 Playwright checks were run by
+  hand on both adapters; they are not in the workflow, because that means a
+  Chromium download and a built server per run. Worth adding if the auth surface
+  grows.
 - Scroll-reveal fragility: 26 elements ship with inline opacity:0 and depend on
   a JS observer. Fast Refresh has left them permanently invisible. See
   LESSONS.md for options. UNRESOLVED.

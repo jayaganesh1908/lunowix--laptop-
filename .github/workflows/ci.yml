@@ -1,0 +1,99 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  # Lets you re-run the suite from the Actions tab without pushing an empty commit.
+  workflow_dispatch:
+
+# A second push to the same branch makes the first run's result irrelevant, so
+# cancel it rather than paying for both. Never cancel a run on main: its status is
+# what tells you whether the branch is healthy.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    name: Lint, typecheck, test, build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    # The suite runs TWICE against this: once with no DATABASE_URL, exercising the
+    # JSON file store that a fresh clone uses, and once against Postgres. Both
+    # adapters sit behind one `Store` interface and the whole point of that seam is
+    # that the repositories above it behave identically on either — a claim worth
+    # checking rather than asserting. The Postgres adapter's own tests also cover
+    # behaviour only SQL can get wrong (jsonb containment matching null, count(*)
+    # arriving as a string, upsert on conflict), none of which tsc can see.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: lunowix_test
+        ports:
+          - 5432:5432
+        # Without this the first query can land before the server accepts
+        # connections, which fails as a confusing connection error rather than as
+        # "the database was not ready".
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          # The test runner is `node:test` driven through tsx, and the file store
+          # uses fs/promises APIs that settled in 22. Pinned to major so a patch
+          # release is picked up but a jump to 24 is a deliberate edit.
+          node-version: 22
+          cache: npm
+
+      # `npm ci` rather than `npm install`: it installs exactly the lockfile and
+      # fails if package.json and the lockfile disagree, which is a real error
+      # worth catching here rather than a thing to paper over.
+      - name: Install
+        run: npm ci
+
+      # The script carries `--max-warnings 0`. Plain `eslint` exits 0 when there
+      # are only warnings, and this config reports unused variables and imports as
+      # warnings — so before that flag this step printed them and passed, which is
+      # worse than having no lint step at all. It lives in the script rather than
+      # here so `npm run lint` locally gives the same verdict CI does.
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      # No DATABASE_URL: the JSON file store, which is what `npm run dev` uses.
+      - name: Test (file store)
+        run: npm test
+
+      - name: Test (Postgres)
+        env:
+          TEST_DATABASE_URL: postgres://postgres:postgres@localhost:5432/lunowix_test
+          # The service container speaks plaintext; only managed providers need TLS.
+          DATABASE_SSL: disable
+        run: npm test
+
+      # Runs last because it is the slowest step, and because a type or test
+      # failure is a more useful thing to be told about than a build failure that
+      # the same bug caused.
+      #
+      # Deliberately no AUTH_SECRET here. It is required at RUNTIME by
+      # `next start`, and the build does not read it — pre-rendering the auth
+      # pages never signs a session. Setting a placeholder would hide a
+      # regression where something started reading it during the build, which is
+      # exactly the kind of change worth failing on.
+      - name: Build
+        run: npm run build

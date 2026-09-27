@@ -157,7 +157,7 @@ value is a 400, not a silent default.
 | `npm run build` | Production build; pre-renders every product detail page. |
 | `npm start` | Serves the build. Needs `AUTH_SECRET`. |
 | `npm test` | 89 tests. 100 with a test database — see below. |
-| `npm run lint` | ESLint. |
+| `npm run lint` | ESLint, with `--max-warnings 0`. |
 
 Tests run on Node's built-in runner through `tsx`; there is no framework to
 install. The `--conditions=react-server` flag is required: modules marked
@@ -185,6 +185,22 @@ conflict), none of which a typecheck can see.
 | `/sitemap.xml` | 74 URLs, derived from the catalogue. |
 | `npm test` | 89 passing. |
 | `npm run build` | Completes, pre-rendering every detail route. |
+
+## Continuous integration
+
+`.github/workflows/ci.yml` runs on every pull request and every push to `main`:
+install, lint, typecheck, the test suite **twice** — once on the file store and
+once against a `postgres:16` service container — then the production build.
+
+Running the suite on both adapters is the point. They sit behind one `Store`
+interface and the whole claim of that seam is that the repositories above it
+behave identically on either; a green run on only one of them would not check
+that.
+
+`npm run lint` carries `--max-warnings 0`. Plain `eslint` exits 0 when there are
+only warnings, and this config reports unused variables and imports as warnings,
+so without the flag a lint step prints them and passes — worse than no lint step,
+because it looks like coverage.
 
 ## Deploying
 
